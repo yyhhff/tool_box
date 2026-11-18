@@ -1,6 +1,6 @@
 # 2026 A股半年报分析台 — 数据契约与验收标准（CONTRACT）
 
-> 版本：v1.6 ｜ 制定人：pm-architect ｜ 数据时点标注：2026-11-18
+> 版本：v1.7 ｜ 制定人：pm-architect ｜ 数据时点标注：2026-11-18
 > 适用范围：本文件是 finance-data / macro-data 采集、data-engineer 生成 CSV、frontend-dev 生成单文件 HTML、qa-tester 验收的**唯一字段契约**。任何字段增删改必须先改本文件并通知 team-lead。
 > 周期口径：全部数据为 **2026H1 半年度报告累计口径（2026-01-01 ~ 2026-06-30，非单季、非年化）**。
 
@@ -60,14 +60,15 @@
 | 经营现金流净额 | ocf | number | 元 | 经营活动产生的现金流量净额 | 是 |
 | 加权平均ROE | roe | number | % | 加权平均净资产收益率，半年度口径未年化，必须注明 | 是 |
 | 毛利率 | grossMargin | number | % | （营业收入−营业成本）/营业收入 | 是 |
+| 资产负债率 | debtToAssetRatio | number | % | 负债合计/资产总计×100；来自 NeoData 直连 financial_indicators.debt_to_assets_ratio（2026H1）；金融类同样有值（高负债为行业特征，如银行约 90%），仅在来源缺失时留空 | 是 |
 | 披露日期 | discloseDate | date | — | 正式半年报披露日 | 是 |
 | 数据来源 | source | string | — | Wind/iFinD/东方财富/WeStock，可多来源逗号分隔 | 否 |
 | 数据时点 | asOf | date | — | 统一 2026-11-18 | 否 |
 
 示例行（占位符）：
 ```
-股票代码,股票简称,申万一级行业,所属产业链,所属环节,营业总收入,营收同比,归母净利润,归母净利同比,扣非净利润,经营现金流净额,加权平均ROE,毛利率,披露日期,数据来源,数据时点
-待填,待填,待填,待填,待填,待填,待填,待填,待填,待填,待填,待填,待填,待填,待填,2026-11-18
+股票代码,股票简称,申万一级行业,所属产业链,所属环节,营业总收入,营收同比,归母净利润,归母净利同比,扣非净利润,经营现金流净额,加权平均ROE,毛利率,资产负债率,披露日期,数据来源,数据时点
+待填,待填,待填,待填,待填,待填,待填,待填,待填,待填,待填,待填,待填,待填,待填,待填,2026-11-18
 ```
 
 ### 表2 产业链环节赚钱榜
@@ -271,6 +272,8 @@
 
 **v1.6 表6 指数行情说明**：`level=指数行情` 的记录为盘中行情快照，行情/资金流时点以 `quoteTime` 为准，与 `asOf`（2026-11-18 研究整理日）、财报统计期 2026H1 三者严格区分、不可混用；`retailNetFlow` 以小单净流入近似散户口径，并在 `compareNote` 标注；原始资金流表无明细的指数（上证50、中证500）该项留空，不编造。
 
+**v1.7 NeoData 直连回填说明**：表1 的经营现金流净额（`ocf`）与毛利率（`grossMargin`）空缺项、表4 的毛利率空缺项，由 NeoData 直连 `financial_indicators` + `cash_flow`（2026H1，截止 2026-06-30）同源同口径回填，已抽样逐位核对；资产负债率（`debtToAssetRatio`）为 v1.7 新增列，取自 NeoData `debt_to_assets_ratio`（负债合计/资产总计×100），金融类同样有值（高负债为行业特征），仅来源缺失时留空。**只填空缺、不覆盖已有值**（如贵州茅台经营现金流 70690750119.06、毛利率 89.5552，大全能源毛利率 −74.4 均保持原值）；`roe` 与 `revenueYoy` 因口径差异（表1 加权平均未年化 vs NeoData 平均口径；营业总收入 vs 营业收入）未被本次回填覆盖，保持原值。
+
 ### 2.2 联动链路：`产业链 → 环节 → 板块/类型/排序/关键词`
 
 ```
@@ -444,6 +447,7 @@ function exportCSV(rows, headerMap, filename) {
 - **营收字段强约束（v1.3）**：营收与营收同比**必须**取 `TotalOperatingRevenue`/`TORGrowRate`（营业总收入），**禁止**误用 `OperatingRevenue`/`OperatingRevenueGrowRate_Q`（营业收入）——两套数值差异显著（如茅台 营业总收入 922.78亿/+1.30% vs 营业收入 907.03亿/−5.14%；长鑫 +873.64% vs +977.39%）。data-engineer 落库与 QA 校验均须核查此口径。
 - **行情/资金/技术口径（v1.4，表4）**：`price`/`changePercent`/`mainNetFlow` 系列均为**行情快照**，必须带 `quoteDate`（交易日），与 `asOf`（研究整理日 2026-11-18）区分；缺 `quoteDate` 的行情值不得参与排序。`techIndicators` 为原始数值 JSON，缺项省略/为 `null` 不填 0；`techSignal` 为文字摘要，须在 `note` 或字段值标注来源（工具返回/计算值），**客观描述、禁止买卖建议用语**（沿用现有工具「行情视角」只陈列看多看空逻辑、不给建议的口径）。涨幅着色仍遵循涨红跌绿。
 - **指数行情口径（v1.6，表6）**：`level=指数行情` 为盘中行情快照，行情/资金流对应 `quoteTime`（如 2026-11-18 09:56 盘中快照，非收盘），与 `asOf`（2026-11-18 研究整理日）、财报统计期 2026H1 三者严格区分，不得混用；`chgYtd` 基准为 2025-12-31 收盘；`retailNetFlow` 以 WeStock 小单净流入近似散户口径并在 `compareNote` 标注；原始资金流表无明细的指数（上证50、中证500）留空，不编造。
+- **NeoData 直连回填口径（v1.7，表1/表4）**：空缺的 `ocf`/`grossMargin` 取 NeoData 直连 2026H1 值（报告期 2026-01-01~2026-06-30，累计口径，与统计期一致），单位为元 / % 与 §0 一致；资产负债率 `debtToAssetRatio` 为 2026H1 时点值（%）。一律只补空缺、不覆盖已有值；来源标注沿用 NeoData，ROE 与营收同比因口径差异（加权未年化 vs 平均、营业总收入 vs 营业收入）未被覆盖。
 
 ### 4.2 来源与标注
 
@@ -520,6 +524,10 @@ function exportCSV(rows, headerMap, filename) {
 - [ ] 36. 表6 指数行情行 `changePercent`/`turnoverRate`/`chg5d`/`chg20d`/`chgYtd`/`mainNetFlow`/`retailNetFlow`/`quoteTime` 8 字段齐全，7 大指数数值可溯源至 WeStock 工具返回（DATA_MACRO.md §4.3–4.5）。
 - [ ] 37. 盘中快照时点 `quoteTime` 已标注并与 `asOf`/统计期 2026H1 区分；上证50/中证500 无资金流明细的 `mainNetFlow`/`retailNetFlow` 留空不编造，散户口径以小单净流入近似并标注。
 
+**v1.7 NeoData 直连回填（data-engineer 落库）**
+- [ ] 38. 表1 含新增资产负债率列（`debtToAssetRatio`），CSV 表头为 17 列（资产负债率插在毛利率后、披露日期前）；值取自 NeoData 直连 `debt_to_assets_ratio`（2026H1），金融类同样有值、仅来源缺失时留空、不填 0；SNAPSHOT 与资料库 market 表同步含该字段。
+- [ ] 39. 表1/表4 空缺的经营现金流净额、毛利率由 NeoData 直连 2026-H1 同源同口径回填（已抽样逐位核对），已有值未被覆盖（茅台现金流 70690750119.06、毛利率 89.5552 保持原值；大全能源毛利率 −74.4 未被 −74.4242 覆盖）；SNAPSHOT/资料库与 CSV 逐字段一致，`roe`/`revenueYoy` 因口径差异保持原值。
+
 ---
 
-> 变更记录：v1.0 初始锁定契约（pm-architect，2026-11-18）；v1.1 补充单文件/无 CDN/视觉风格硬约束（team-lead 要求）；v1.2 针对 macro-data 五处口径冲突裁决（ROE TTM 放宽+标注、来源白名单扩官方机构、表5 历史快照+statDate、金额单位单次换算、行业缺口填待填）；v1.3 定稿表5 状态字段时间语义、补 WeStock 字段映射与营收字段强约束、数据层命名/免责声明权威归 team-lead（finance-data / frontend-dev 反馈）；v1.4 应 frontend-dev 变更请求增补表4 行情/资金/技术字段（price/changePercent/mainNetFlow 系列/quoteDate/techIndicators JSON/techSignal）；v1.5 放宽表4 chain/link 为可空以容纳无产业链归属的额外龙头、澄清表5 真实历史时点待披露记录合规（data-engineer 落库反馈），验收扩至 35 条，pm-architect 更新；v1.6 表6 扩 8 字段（涨跌幅/换手率/近5日涨跌/近20日涨跌/年初至今/主力净流入/散户净流入/行情时点）容纳指数行情增强，落库 7 大指数真实盘中快照数据，level 枚举新增「指数行情」，验收扩至 37 条（pm-architect/总指挥，2026-11-18）。
+> 变更记录：v1.0 初始锁定契约（pm-architect，2026-11-18）；v1.1 补充单文件/无 CDN/视觉风格硬约束（team-lead 要求）；v1.2 针对 macro-data 五处口径冲突裁决（ROE TTM 放宽+标注、来源白名单扩官方机构、表5 历史快照+statDate、金额单位单次换算、行业缺口填待填）；v1.3 定稿表5 状态字段时间语义、补 WeStock 字段映射与营收字段强约束、数据层命名/免责声明权威归 team-lead（finance-data / frontend-dev 反馈）；v1.4 应 frontend-dev 变更请求增补表4 行情/资金/技术字段（price/changePercent/mainNetFlow 系列/quoteDate/techIndicators JSON/techSignal）；v1.5 放宽表4 chain/link 为可空以容纳无产业链归属的额外龙头、澄清表5 真实历史时点待披露记录合规（data-engineer 落库反馈），验收扩至 35 条，pm-architect 更新；v1.6 表6 扩 8 字段（涨跌幅/换手率/近5日涨跌/近20日涨跌/年初至今/主力净流入/散户净流入/行情时点）容纳指数行情增强，落库 7 大指数真实盘中快照数据，level 枚举新增「指数行情」，验收扩至 37 条（pm-architect/总指挥，2026-11-18）；v1.7 表1新增资产负债率列（debtToAssetRatio，取自 NeoData 直连 2026H1 financial_indicators.debt_to_assets_ratio），经营现金流净额与毛利率空缺项由 NeoData 直连同源同口径回填（只填空缺、不覆盖已有值），ROE/营收同比因口径差异保持原值，SNAPSHOT 与资料库 market 表同步，验收扩至 39 条（data-engineer，2026-11-18）。

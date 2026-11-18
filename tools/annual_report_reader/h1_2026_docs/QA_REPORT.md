@@ -172,10 +172,26 @@
 
 - `node --check` exit=0；`MINDX_DBSDK_LINT_OK`（21 字段 schema）；CRLF 保持。
 
-### 6.3 P1 未做三项（列为后续，非缺陷）
+### 6.3 P1 未做项更新（v1.7 后）
 
-- **D3 逐公司资产负债率 / D4 逐公司现金流**：原始明细仅个别龙头有零散值，46 家链内公司普遍缺失，需新采集资产负债表/现金流量表。
-- **I5 业绩快报/业绩预降事件**：无事件明细原始数据，仅有汇总统计数字，需新查询。
-- 以上三项硬做会产生编造数据，按 §4.2「未采集写待填、禁止编造」原则本轮不落库，待数据源补充后实施。
+- **D3 资产负债率 / D4 经营现金流**：已于 v1.7 通过 NeoData 直连授权补齐，见 §6.4。
+- **I5 业绩快报/业绩预降事件**：仍需事件型历史明细（观察区时点还原），本轮未纳入，列为后续，非缺陷。
 
-> 增量验收人声明：P0/P1 结论基于行为级实跑（renderKPI/exportAllCSV/renderIndexQuote/setMode）与逐字段核对，所有临时脚本已清理，无残留；口径标注缺口经 team-lead 裁决后已补齐并复验。
+### 6.4 P1 财务字段补齐（NeoData 直连，契约 v1.7）
+
+> 用户开通 NeoData 直连授权后实施。取数工具 `mcp__neodata__financial_indicators` + `cash_flow`（2026H1，截止 2026-06-30）；104 家（market 67 + compare 独有 37）逐一取数，茅台锚点（资产负债率15.193112/毛利率89.555213/经营现金流70690750119.06）逐位校验 PASS。
+
+| 验收项 | 结论 | 证据 |
+|---|---|---|
+| 取数口径同源 | PASS | 茅台 ocf/grossMargin/netProfitYoy 与既有 CSV 逐位吻合；ROE/营收同比口径不同（加权未年化 vs 平均、营业总收入 vs 营业收入）明确不覆盖 |
+| 资产负债率（D3） | PASS | market 表 16→17 列新增 debtToAssetRatio；104 家全有值（工行92.37/平安89.83/茅台15.19，金融高负债合理）；金融类非留空（来源缺失才留空） |
+| 经营现金流（D4） | PASS | market 表 ocf 空缺项回填 NeoData 值，已有值未覆盖（茅台70690750119.06 保持） |
+| 毛利率逐行（D6） | PASS | market+compare 空缺项回填；已有值未覆盖（大全能源688303 −74.4 未改成 −74.4242）；18 家金融类无毛利率留空 |
+| 四处同步 | PASS | CSV(market 67行17列) ↔ SNAPSHOT_DATA.json ↔ HTML 内嵌 SNAPSHOT ↔ 资料库 market 表(17字段/67行) 逐字段一致 |
+| 前端渲染 | PASS | 板块① t-market 11→13 列（+毛利率+资产负债率），emptyRow=13，CN_MAP/HEADERS/SORT_OPTIONS 同步，水平指标不着色、空值「—」 |
+| 回归 | PASS | P0 五项 + P1 行情增强（指数行情表）无回归；六表 data-sp-database-id 未变；六表关联 6/6；免责声明原文一致 |
+| 静态 | PASS | `node --check` exit=0；`MINDX_DBSDK_LINT_OK`（17 字段）；ES5 无禁用特性；零外链；CRLF 1331/1331 |
+
+- 契约 v1.7，验收扩至 39 条（新增 38 资产负债率列、39 回填值与来源一致且不覆盖已有值）。
+
+> 增量验收人声明：P0/P1/P1财务 结论基于行为级实跑（renderKPI/exportAllCSV/renderIndexQuote/renderMarket/setMode）与逐字段核对，所有临时脚本已清理，无残留；口径标注缺口经 team-lead 裁决后已补齐并复验。
