@@ -196,7 +196,15 @@ SQLite 数据库（本地存储）
 
 至此用户需求①（多账号一起挂、软件内切换、不用反复扫码）与②（自动签到+结果可视化数据源）核心链路真机闭环。每日 9:00 定时任务将对全部启用 auto_checkin 的账号轮转签到。
 
-遗留：聊天记录获取接口未在 auto-signin/2api-panel 中发现（它们只覆盖签到/任务/网关），聊天合并功能依赖后续探索 WorkBuddy 会话 API 或本地会话数据导出；前端管理面板待开发。
+### 第五轮（Web 管理面板，2026-11-19）：前端闭环 ✅
+
+- static/index.html 单文件面板（FastAPI 静态托管，零构建链，与项目 french-learner/h1_2026 模式一致）：三 Tab——账号池（bind/状态徽章/开关/签到/刷新凭据）、签到中心（统计卡/一键全部签到/记录表）、聊天记录（一键合并/消息查询）
+- 新增 PATCH /api/accounts/{id}（auto_checkin / auto_merge / name）
+- start.bat 一键启动（依赖自检）
+- 验证：页面 200（19.4KB）、IAB 浏览器截图确认渲染正常（中文/徽章/开关/卡片）、前端 JS Node 编译通过、PATCH 端点真机生效
+- 技术选型说明：Next.js → 单文件 HTML（本地管理面板无需独立 node 服务，与项目现有模式一致）
+
+遗留：聊天记录获取接口未在 auto-signin/2api-panel 中发现（它们只覆盖签到/任务/网关），聊天合并功能依赖后续探索 WorkBuddy 会话 API（可 Fiddler 抓包）或本地会话数据导出；常驻运行可注册到 service_manager（tools/service_manager）。
 
 ### 输出物与验收标准
 

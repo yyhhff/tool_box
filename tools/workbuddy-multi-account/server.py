@@ -3,12 +3,18 @@ WorkBuddy 多账号管理工具 - FastAPI 后端服务器
 """
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
+from pathlib import Path
 import uvicorn
 
 from models import init_db
 from api import accounts, checkin, chat
 from services.scheduler import start_scheduler, stop_scheduler
+
+# 前端静态目录
+STATIC_DIR = Path(__file__).parent / "static"
 
 # 生命周期管理
 @asynccontextmanager
@@ -51,12 +57,14 @@ app.include_router(chat.router)
 
 @app.get("/")
 async def root():
-    """根路径"""
-    return {
-        "message": "WorkBuddy 多账号管理工具 API",
-        "version": "1.0.0",
-        "docs": "/docs"
-    }
+    """管理面板首页"""
+    return FileResponse(STATIC_DIR / "index.html")
+
+
+@app.get("/health")
+async def health_check():
+    """健康检查"""
+    return {"status": "healthy"}
 
 
 @app.get("/health")

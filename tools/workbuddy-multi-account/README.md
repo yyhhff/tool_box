@@ -87,17 +87,27 @@ pip install -r requirements.txt
 
 ## 使用方法
 
-### 启动服务器
+### 一键启动（推荐）
+
+双击 `start.bat`（自动检查依赖并启动），然后浏览器访问：
+
+**http://127.0.0.1:8000** —— Web 管理面板
+
+### 管理面板功能（v1.3.0）
+
+- **账号池**：账号卡片（状态徽章：在线/需重登/离线/无凭据）、添加账号（bind）、刷新凭据、探测状态、每号「每日自动签到」与「切号自动迁移记录」开关
+- **签到中心**：30 天统计卡（成功/失败/总积分/账号数）、一键全部签到、签到记录明细表
+- **聊天记录**：一键合并（目标账号 + 来源多选，按 会话ID+消息ID 去重）、消息查询
+
+### 命令行启动
 
 ```bash
-python server.py
+python server.py        # http://127.0.0.1:8000
 ```
-
-服务器将在 `http://localhost:8000` 启动。
 
 ### API 文档
 
-访问 `http://localhost:8000/docs` 查看 API 文档。
+访问 `http://127.0.0.1:8000/docs` 查看 API 文档。
 
 ### 主要 API 端点
 
@@ -212,6 +222,12 @@ workbuddy-multi-account/
 MIT License
 
 ## 更新日志
+
+### v1.3.0 (2026-11-19)
+- ✅ Web 管理面板（static/index.html 单文件，FastAPI 静态托管，零构建链）
+- ✅ 三 Tab：账号池 / 签到中心 / 聊天记录
+- ✅ 新增 PATCH /api/accounts/{id}（auto_checkin / auto_merge / name 设置）
+- ✅ start.bat 一键启动（依赖自检 + 自动安装）
 
 ### v1.2.0 (2026-11-19)
 - ✅ 接入真实 WorkBuddy 协议（copilot.tencent.com，Bearer 认证）

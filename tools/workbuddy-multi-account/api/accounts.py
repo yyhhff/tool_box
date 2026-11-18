@@ -29,6 +29,13 @@ class SwitchRequest(BaseModel):
     account_id: str
 
 
+class UpdateAccountRequest(BaseModel):
+    """账号设置更新（全部字段可选）"""
+    name: Optional[str] = None
+    auto_checkin: Optional[bool] = None
+    auto_merge: Optional[bool] = None
+
+
 @router.post("/login", response_model=LoginResponse)
 async def login_account(request: LoginRequest):
     """
@@ -123,6 +130,42 @@ async def get_accounts():
             "data": [account.to_dict() for account in accounts]
         }
     except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        db.close()
+
+
+@router.patch("/{account_id}")
+async def update_account(account_id: str, body: UpdateAccountRequest):
+    """
+    更新账号设置（名称 / 自动签到开关 / 自动迁移开关）
+    """
+    db = next(get_db())
+    try:
+        account = db.query(Account).filter(Account.id == account_id).first()
+        if not account:
+            raise HTTPException(status_code=404, detail="账号不存在")
+
+        if body.name is not None:
+            name = body.name.strip()
+            if not name:
+                raise HTTPException(status_code=422, detail="账号名称不能为空")
+            account.name = name
+        if body.auto_checkin is not None:
+            account.auto_checkin = body.auto_checkin
+        if body.auto_merge is not None:
+            account.auto_merge = body.auto_merge
+        db.commit()
+
+        return {
+            "success": True,
+            "message": "设置已更新",
+            "data": account.to_dict(),
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
     finally:
         db.close()

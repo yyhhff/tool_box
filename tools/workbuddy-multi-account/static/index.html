@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WorkBuddy 多账号管理</title>
+<style>
+  :root {
+    --bg: #f5f6f8; --card: #ffffff; --border: #e3e6ea;
+    --text: #24292f; --muted: #6a737d;
+    --green: #1a7f37; --red: #cf222e; --orange: #9a6700; --gray: #8c959f;
+    --primary: #0969da; --primary-dark: #0550ae;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font: 14px/1.6 -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 20px 16px 60px; }
+  header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  header h1 { font-size: 20px; font-weight: 600; }
+  .svc { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 13px; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--gray); }
+  .dot.on { background: var(--green); } .dot.off { background: var(--red); }
+
+  .tabs { display: flex; gap: 4px; background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 4px; margin-bottom: 16px; }
+  .tabs button { flex: 1; border: 0; background: transparent; padding: 9px 0; border-radius: 7px; cursor: pointer; font-size: 14px; color: var(--muted); }
+  .tabs button.active { background: var(--primary); color: #fff; font-weight: 600; }
+
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 14px; }
+  .card h2 { font-size: 15px; margin-bottom: 12px; }
+  .row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .muted { color: var(--muted); font-size: 12px; }
+
+  .acct { border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; margin-bottom: 10px; }
+  .acct.active-acct { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary); }
+  .acct-head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .acct-name { font-weight: 600; font-size: 15px; }
+  .badge { font-size: 11px; padding: 2px 8px; border-radius: 10px; }
+  .badge.online { background: #dafbe1; color: var(--green); }
+  .badge.login_required { background: #fff8c5; color: var(--orange); }
+  .badge.offline { background: #e8ebef; color: var(--gray); }
+  .badge.nocred { background: #ffebe9; color: var(--red); }
+  .acct-meta { color: var(--muted); font-size: 12px; margin-bottom: 8px; }
+
+  .switch { position: relative; width: 34px; height: 18px; background: #d0d7de; border-radius: 9px; cursor: pointer; transition: background .15s; flex: none; }
+  .switch::after { content: ""; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; background: #fff; border-radius: 50%; transition: left .15s; }
+  .switch.on { background: var(--green); }
+  .switch.on::after { left: 18px; }
+  .switch-label { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px; cursor: pointer; user-select: none; }
+
+  button.act { border: 1px solid var(--border); background: #fff; border-radius: 6px; padding: 5px 12px; cursor: pointer; font-size: 13px; color: var(--text); }
+  button.act:hover { border-color: var(--primary); color: var(--primary); }
+  button.act.primary { background: var(--primary); border-color: var(--primary); color: #fff; }
+  button.act.primary:hover { background: var(--primary-dark); }
+  button.act.danger { color: var(--red); }
+  button.act:disabled { opacity: .5; cursor: not-allowed; }
+
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 14px; }
+  .stat { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
+  .stat .num { font-size: 22px; font-weight: 700; }
+  .stat .lbl { color: var(--muted); font-size: 12px; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 500; font-size: 12px; }
+  td.points { font-weight: 600; color: var(--green); }
+  td.points.zero { color: var(--gray); }
+
+  input[type=text], select { border: 1px solid var(--border); border-radius: 6px; padding: 6px 10px; font-size: 13px; }
+  .toast { position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%); background: #24292f; color: #fff; padding: 10px 18px; border-radius: 8px; font-size: 13px; opacity: 0; transition: opacity .2s; pointer-events: none; max-width: 80vw; }
+  .toast.show { opacity: .95; }
+  .toast.err { background: var(--red); }
+  .hidden { display: none; }
+  .msg-item { padding: 8px 10px; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .msg-item .sender { font-weight: 600; margin-right: 8px; }
+  .empty { color: var(--muted); text-align: center; padding: 24px 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>WorkBuddy 多账号管理</h1>
+    <div class="svc"><span class="dot" id="svcDot"></span><span id="svcText">连接中…</span></div>
+  </header>
+
+  <div class="tabs">
+    <button data-tab="accounts" class="active">账号池</button>
+    <button data-tab="checkin">签到中心</button>
+    <button data-tab="chat">聊天记录</button>
+  </div>
+
+  <!-- Tab 1: 账号池 -->
+  <div id="tab-accounts">
+    <div class="card">
+      <div class="row" style="justify-content: space-between;">
+        <h2 style="margin:0;">账号列表 <span class="muted" id="acctCount"></span></h2>
+        <div class="row">
+          <button class="act" onclick="refreshAccounts()">刷新</button>
+          <button class="act primary" onclick="showBind()">+ 添加账号（bind）</button>
+        </div>
+      </div>
+      <div id="bindBox" class="hidden" style="margin-top:12px; padding:12px; background:#f6f8fa; border-radius:8px;">
+        <div class="row">
+          <input type="text" id="bindName" placeholder="账号备注名，如 my-work" style="flex:1; min-width:200px;">
+          <button class="act primary" onclick="doBind()">绑定当前客户端登录的账号</button>
+          <button class="act" onclick="hideBind()">取消</button>
+        </div>
+        <div class="muted" style="margin-top:6px;">
+          快照的是客户端「当前登录」的账号。要添加另一个号：在客户端切换登录后再次绑定。
+        </div>
+      </div>
+    </div>
+    <div id="acctList"></div>
+  </div>
+
+  <!-- Tab 2: 签到中心 -->
+  <div id="tab-checkin" class="hidden">
+    <div class="stats" id="checkinStats"></div>
+    <div class="card">
+      <div class="row" style="justify-content: space-between;">
+        <h2 style="margin:0;">签到记录</h2>
+        <div class="row">
+          <button class="act" onclick="refreshStats()">刷新统计</button>
+          <button class="act primary" id="checkinAllBtn" onclick="checkinAll()">一键全部签到</button>
+        </div>
+      </div>
+      <table style="margin-top:10px;">
+        <thead><tr><th>时间</th><th>账号</th><th>类型</th><th>积分</th><th>状态</th></tr></thead>
+        <tbody id="recordBody"><tr><td colspan="5" class="empty">加载中…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Tab 3: 聊天记录 -->
+  <div id="tab-chat" class="hidden">
+    <div class="card">
+      <h2>一键合并聊天记录</h2>
+      <div class="row" style="margin-bottom:8px;">
+        <span style="font-size:13px;">合并到：</span>
+        <select id="mergeTarget" style="min-width:200px;"></select>
+      </div>
+      <div class="row" style="margin-bottom:8px;">
+        <span style="font-size:13px;">来源账号：</span>
+        <span id="mergeSources" class="row" style="gap:14px;"></span>
+      </div>
+      <div class="row">
+        <button class="act primary" onclick="doMerge()">一键合并</button>
+        <span class="muted">按 (会话ID + 消息ID) 去重，重复消息不会重复计入。</span>
+      </div>
+    </div>
+    <div class="card">
+      <h2>消息查询</h2>
+      <div class="row" style="margin-bottom:10px;">
+        <select id="msgAccount" onchange="loadMessages()" style="min-width:200px;"></select>
+        <button class="act" onclick="loadMessages()">查询</button>
+      </div>
+      <div id="msgList"><div class="empty">选择账号后查询（当前会话列表）</div></div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const API = "";
+let accountsCache = [];
+
+// ---------- 工具 ----------
+function toast(msg, isErr) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.className = "toast show" + (isErr ? " err" : "");
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.className = "toast", 3200);
+}
+async function api(path, opts) {
+  const resp = await fetch(API + path, opts);
+  const body = await resp.json().catch(() => ({}));
+  if (!resp.ok) throw new Error(body.detail || ("HTTP " + resp.status));
+  return body;
+}
+function fmtTime(iso) { return iso ? iso.replace("T", " ").slice(0, 19) : "-"; }
+const STATUS_TEXT = { online: "在线", login_required: "需重登", offline: "离线" };
+
+// ---------- 健康检查 ----------
+async function ping() {
+  const dot = document.getElementById("svcDot");
+  const txt = document.getElementById("svcText");
+  try {
+    await api("/health");
+    dot.className = "dot on"; txt.textContent = "服务运行中";
+  } catch (e) {
+    dot.className = "dot off"; txt.textContent = "服务未连接";
+  }
+}
+
+// ---------- Tab 切换 ----------
+document.querySelectorAll(".tabs button").forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll(".tabs button").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    ["accounts", "checkin", "chat"].forEach(t =>
+      document.getElementById("tab-" + t).classList.toggle("hidden", t !== btn.dataset.tab));
+    if (btn.dataset.tab === "checkin") { refreshStats(); refreshRecords(); }
+    if (btn.dataset.tab === "chat") { renderMerge(); }
+  };
+});
+
+// ---------- 账号池 ----------
+async function refreshAccounts() {
+  try {
+    const data = await api("/api/accounts/list");
+    accountsCache = data.data || [];
+    document.getElementById("acctCount").textContent = `（${accountsCache.length}）`;
+    renderAccounts();
+    renderMerge();
+    fillSelects();
+  } catch (e) { toast("加载账号失败：" + e.message, true); }
+}
+
+function renderAccounts() {
+  const box = document.getElementById("acctList");
+  if (!accountsCache.length) {
+    box.innerHTML = '<div class="card empty">还没有账号。点「+ 添加账号」把客户端当前登录的号绑定进来。</div>';
+    return;
+  }
+  box.innerHTML = accountsCache.map(a => {
+    const st = STATUS_TEXT[a.status] || a.status;
+    const time = a.last_active_time ? fmtTime(a.last_active_time) : "从未活跃";
+    return `
+    <div class="acct ${a.has_credential ? "" : ""}">
+      <div class="acct-head">
+        <span class="acct-name">${esc(a.name)}</span>
+        <span class="badge ${a.status}">${st}</span>
+        ${a.has_credential ? "" : '<span class="badge nocred">无凭据</span>'}
+      </div>
+      <div class="acct-meta">ID: ${a.id} · 最后活跃: ${time}${a.merged_from ? " · 已合并来源: " + esc(a.merged_from) : ""}</div>
+      <div class="row">
+        <label class="switch-label" onclick="toggleFlag('${a.id}', 'auto_checkin', ${!a.auto_checkin})">
+          <span class="switch ${a.auto_checkin ? "on" : ""}"></span>每日自动签到
+        </label>
+        <label class="switch-label" onclick="toggleFlag('${a.id}', 'auto_merge', ${!a.auto_merge})">
+          <span class="switch ${a.auto_merge ? "on" : ""}"></span>切号自动迁移记录
+        </label>
+        <span style="flex:1"></span>
+        <button class="act" onclick="probeStatus('${a.id}')">探测状态</button>
+        ${a.has_credential ? `<button class="act primary" onclick="checkinOne('${a.id}')">签到</button>` : ""}
+        ${a.has_credential ? `<button class="act" onclick="refreshCred('${a.id}')">刷新凭据</button>` : ""}
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function esc(s) { const d = document.createElement("div"); d.textContent = s == null ? "" : s; return d.innerHTML; }
+
+async function toggleFlag(id, key, value) {
+  try {
+    await api("/api/accounts/" + id, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ [key]: value }),
+    });
+    await refreshAccounts();
+    toast(key === "auto_checkin" ? "自动签到已" + (value ? "开启" : "关闭") : "自动迁移已" + (value ? "开启" : "关闭"));
+  } catch (e) { toast("更新失败：" + e.message, true); }
+}
+
+async function probeStatus(id) {
+  try {
+    const d = await api("/api/accounts/" + id + "/status");
+    toast("状态：" + (STATUS_TEXT[d.data.status] || d.data.status));
+    await refreshAccounts();
+  } catch (e) { toast("探测失败：" + e.message, true); }
+}
+
+async function checkinOne(id) {
+  try {
+    toast("签到中…");
+    const d = await api("/api/checkin/start", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ account_id: id }),
+    });
+    const dc = d.data.daily_checkin || {};
+    toast(dc.already ? "今日已签过（幂等保护）" : `签到成功，本次 +${d.data.total_points} 积分`);
+  } catch (e) { toast("签到失败：" + e.message, true); }
+}
+
+async function checkinAll() {
+  const btn = document.getElementById("checkinAllBtn");
+  btn.disabled = true; btn.textContent = "签到中…";
+  let ok = 0, fail = 0;
+  for (const a of accountsCache.filter(x => x.has_credential && x.auto_checkin)) {
+    try { await api("/api/checkin/start", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ account_id: a.id }),
+    }); ok++; } catch (e) { fail++; }
+  }
+  btn.disabled = false; btn.textContent = "一键全部签到";
+  toast(`全部签到完成：成功 ${ok}，失败 ${fail}`);
+  refreshStats(); refreshRecords();
+}
+
+async function refreshCred(id) {
+  try {
+    await api("/api/accounts/" + id + "/refresh", { method: "POST" });
+    toast("凭据快照已更新（以客户端当前登录为准）");
+  } catch (e) { toast("刷新失败：" + e.message, true); }
+}
+
+function showBind() { document.getElementById("bindBox").classList.remove("hidden"); document.getElementById("bindName").focus(); }
+function hideBind() { document.getElementById("bindBox").classList.add("hidden"); }
+
+async function doBind() {
+  const name = document.getElementById("bindName").value.trim();
+  if (!name) { toast("请填写账号备注名", true); return; }
+  try {
+    const d = await api("/api/accounts/login", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name }),
+    });
+    hideBind();
+    document.getElementById("bindName").value = "";
+    toast("已绑定：" + name + "（快照已保存）");
+    await refreshAccounts();
+  } catch (e) { toast("绑定失败：" + e.message, true); }
+}
+
+// ---------- 签到中心 ----------
+async function refreshStats() {
+  try {
+    const d = await api("/api/checkin/stats?days=30");
+    const s = d.data;
+    document.getElementById("checkinStats").innerHTML = `
+      <div class="stat"><div class="num">${s.success_count}</div><div class="lbl">成功次数（30天）</div></div>
+      <div class="stat"><div class="num">${s.failed_count}</div><div class="lbl">失败次数</div></div>
+      <div class="stat"><div class="num">${s.total_points}</div><div class="lbl">总积分</div></div>
+      <div class="stat"><div class="num">${Object.keys(s.account_stats || {}).length}</div><div class="lbl">签到账号数</div></div>`;
+  } catch (e) { toast("统计加载失败：" + e.message, true); }
+}
+
+async function refreshRecords() {
+  try {
+    const d = await api("/api/checkin/records?limit=50");
+    const rows = d.data || [];
+    const nameOf = id => { const a = accountsCache.find(x => x.id === id); return a ? a.name : id.slice(0, 12) + "…"; };
+    document.getElementById("recordBody").innerHTML = rows.length
+      ? rows.map(r => `<tr>
+          <td>${fmtTime(r.checkin_time)}</td>
+          <td>${esc(nameOf(r.account_id))}</td>
+          <td>${r.task_type === "daily_checkin" ? "每日签到" : "成长任务"}</td>
+          <td class="points ${r.points ? "" : "zero"}">${r.points ? "+" + r.points : "0"}</td>
+          <td>${r.status === "success" ? "✅ 成功" : "❌ 失败"}</td>
+        </tr>`).join("")
+      : '<tr><td colspan="5" class="empty">暂无记录</td></tr>';
+  } catch (e) { toast("记录加载失败：" + e.message, true); }
+}
+
+// ---------- 聊天记录 ----------
+function renderMerge() {
+  const cred = accountsCache.filter(a => a.has_credential);
+  const target = document.getElementById("mergeTarget");
+  const cur = target.value;
+  target.innerHTML = cred.map(a => `<option value="${a.id}">${esc(a.name)}</option>`).join("");
+  if (cur && cred.some(a => a.id === cur)) target.value = cur;
+
+  const src = document.getElementById("mergeSources");
+  src.innerHTML = cred.length > 1
+    ? cred.map(a => `<label class="switch-label"><input type="checkbox" class="merge-src" value="${a.id}"> ${esc(a.name)}</label>`).join("")
+    : '<span class="muted">至少两个有凭据的账号才能合并</span>';
+}
+
+async function doMerge() {
+  const target = document.getElementById("mergeTarget").value;
+  const sources = [...document.querySelectorAll(".merge-src:checked")].map(c => c.value).filter(id => id !== target);
+  if (!target) { toast("请选择目标账号", true); return; }
+  if (!sources.length) { toast("请勾选至少一个来源账号", true); return; }
+  try {
+    const d = await api("/api/chat/merge", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ target_account_id: target, source_account_ids: sources }),
+    });
+    toast(d.message || "合并完成");
+    refreshAccounts();
+  } catch (e) { toast("合并失败：" + e.message, true); }
+}
+
+async function loadMessages() {
+  const id = document.getElementById("msgAccount").value;
+  if (!id) { toast("请选择账号", true); return; }
+  try {
+    const d = await api("/api/chat/messages?account_id=" + id + "&limit=50");
+    const box = document.getElementById("msgList");
+    const rows = d.data || [];
+    box.innerHTML = rows.length
+      ? rows.map(m => m.chat_id && m.sender
+          ? `<div class="msg-item"><span class="sender">${esc(m.sender)}</span>${esc(m.content)}<div class="muted">${fmtTime(m.timestamp)} · ${esc(m.chat_id)}</div></div>`
+          : `<div class="msg-item">会话 ${esc(m.chat_id)} · ${m.message_count || 0} 条消息 · 最近 ${fmtTime(m.latest_time)}</div>`)
+        .join("")
+      : '<div class="empty">该账号暂无聊天记录（WorkBuddy 会话 API 探索中，本地合并引擎已就绪）</div>';
+  } catch (e) { toast("查询失败：" + e.message, true); }
+}
+
+// 填充消息查询下拉
+function fillSelects() {
+  const opts = accountsCache.map(a => `<option value="${a.id}">${esc(a.name)}</option>`).join("");
+  document.getElementById("msgAccount").innerHTML = opts || '<option value="">（无账号）</option>';
+}
+
+// ---------- 启动 ----------
+ping();
+refreshAccounts();
+setInterval(ping, 30000);
+setInterval(refreshAccounts, 60000);
+</script>
+</body>
+</html>
