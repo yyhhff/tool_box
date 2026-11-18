@@ -78,6 +78,24 @@ async def refresh_account_credential(account_id: str):
     return {"success": True, "message": result["message"]}
 
 
+@router.post("/{account_id}/activate")
+async def activate_account(account_id: str):
+    """
+    设为客户端登录（面板点账号切号）
+
+    把该账号的凭据快照原样写回客户端凭据文件并重启 WorkBuddy，
+    客户端启动时自动登录为该号。注意：会重启客户端，正在进行的客户端会话会中断。
+    """
+    try:
+        result = account_service.activate_account(account_id)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    if not result.get("ok"):
+        code = 404 if result.get("reason") == "NOT_FOUND" else 422
+        raise HTTPException(status_code=code, detail=result.get("message"))
+    return result
+
+
 @router.post("/switch")
 async def switch_account(request: SwitchRequest, background_tasks: BackgroundTasks):
     """

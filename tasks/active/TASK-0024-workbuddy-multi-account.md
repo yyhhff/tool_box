@@ -204,7 +204,16 @@ SQLite 数据库（本地存储）
 - 验证：页面 200（19.4KB）、IAB 浏览器截图确认渲染正常（中文/徽章/开关/卡片）、前端 JS Node 编译通过、PATCH 端点真机生效
 - 技术选型说明：Next.js → 单文件 HTML（本地管理面板无需独立 node 服务，与项目现有模式一致）
 
-遗留：聊天记录获取接口未在 auto-signin/2api-panel 中发现（它们只覆盖签到/任务/网关），聊天合并功能依赖后续探索 WorkBuddy 会话 API（可 Fiddler 抓包）或本地会话数据导出；常驻运行可注册到 service_manager（tools/service_manager）。
+### 第六轮（面板点号切客户端，2026-11-19）：✅
+
+用户需求：点击面板某账号，WorkBuddy 客户端自动切换登录为该号。
+- 实现：POST /api/accounts/{id}/activate → 前端「设为客户端登录」按钮（confirm 确认，提示会重启客户端）
+- 机制：关闭客户端（taskkill，运行中会锁凭据文件）→ 快照字节原样原子写回 workbuddy-desktop.info → 重启 WorkBuddy.exe（分离进程）→ 客户端启动时读到目标凭据自动登录
+- 加密信封与客户端密钥绑定（同机同客户端，keyId 一致），快照写回后仍可被客户端解密——机制前提，真机验证成立
+- 真机验证：客户端当前登录 my-second，activate my-work 后：客户端重启（Electron 7 进程）✓、凭据文件与 my-work 快照 md5 一致（045b66651b93）✓、双号 API 仍双 online（快照轮转不受客户端重启影响）✓
+- 注意：客户端重启会中断其内部进行中的会话（按钮 confirm 已提示）；最终登录身份可在客户端 UI 目视确认
+
+遗留：聊天记录获取接口需 Fiddler 抓包探索；常驻运行可注册到 service_manager。
 
 ### 输出物与验收标准
 

@@ -241,6 +241,7 @@ function renderAccounts() {
         </label>
         <span style="flex:1"></span>
         <button class="act" onclick="probeStatus('${a.id}')">探测状态</button>
+        ${a.has_credential ? `<button class="act primary" onclick="activateClient('${a.id}')">设为客户端登录</button>` : ""}
         ${a.has_credential ? `<button class="act primary" onclick="checkinOne('${a.id}')">签到</button>` : ""}
         ${a.has_credential ? `<button class="act" onclick="refreshCred('${a.id}')">刷新凭据</button>` : ""}
       </div>
@@ -302,6 +303,18 @@ async function refreshCred(id) {
     await api("/api/accounts/" + id + "/refresh", { method: "POST" });
     toast("凭据快照已更新（以客户端当前登录为准）");
   } catch (e) { toast("刷新失败：" + e.message, true); }
+}
+
+async function activateClient(id) {
+  const a = accountsCache.find(x => x.id === id);
+  const name = a ? a.name : id;
+  if (!confirm(`把 WorkBuddy 客户端切换登录为「${name}」？\n\n客户端将自动重启，当前客户端里未完成的会话会中断。\n（签到等后台任务不受影响，仍按各账号快照轮转）`)) return;
+  try {
+    toast("切换中：正在写回凭据并重启客户端…");
+    const d = await api("/api/accounts/" + id + "/activate", { method: "POST" });
+    toast(d.message);
+    setTimeout(refreshAccounts, 3000);
+  } catch (e) { toast("切换失败：" + e.message, true); }
 }
 
 function showBind() { document.getElementById("bindBox").classList.remove("hidden"); document.getElementById("bindName").focus(); }
