@@ -24,5 +24,9 @@ Thumbs.db
 # QA 临时工作区（含音频/中间产物）
 .qa_asr_work/
 
+# workbuddy-multi-account：运行时数据库与凭据快照（凭据含登录态 token，严禁入库）
+tools/workbuddy-multi-account/workbuddy.db
+tools/workbuddy-multi-account/credentials/
+
 # 独立 Git 仓库的子项目（自带 .git，独立管理，不嵌套提交）
 tools/french-learner/

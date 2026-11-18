@@ -4,6 +4,13 @@
 > **维护规则**：新增/删除/变更任何工具或目录后，必须同步更新本文件（见 AGENTS.md 硬性规则）。
 > 最后更新：2026-11-18
 
+## 地图维护原则（TASK-0025 起生效）
+
+1. 本文件是**全局索引**：每个工具条目 ≤ 2 行（功能一句话 + 状态 + 详情指针），不承载详情。
+2. 工具/产品的详情（功能说明、架构契约、QA 报告、使用说明）一律写在 `tools/<工具名>/` 的 README.md 或 docs/ 内，本文件只留指针。
+3. 条目描述超过 2 行视为缺陷：先把多出的内容下沉到工具内部文档，再瘦身本文件。
+4. 数据地图（`docs/data_content.md`）同理：说明列只记要点，口径/契约详情登记在工具内部文档。
+
 ## 目录结构
 
 ```
@@ -45,19 +52,21 @@ tool_box/
 
 ## 工具索引
 
-| 工具 | 路径 | 入口 | 语言 | 功能一句话 | 状态 |
-|------|------|------|------|-----------|------|
-| xhs_crawler | tools/xhs_crawler/ | server.py（Web）/ main.py（CLI） | Python | 爬取指定博主、指定时间范围内的小红书博文，本地 Web 界面 + CLI | 待真机验收 |
-| annual_report_reader | tools/annual_report_reader/ | server.py（Web，默认 5001）/ main.py（CLI）/ h1_2026.html（单页分析台） | Python + HTML/JS | 申万一级 31 行业 × 每行业市值前 3 龙头批量年报带读（GLM），自定义行业/公司，有记忆增量续跑；新增「2026 A股半年报分析台」六板块单页（资料库 SDK + 内嵌快照双数据源） | 核心链路已验收，GLM 生成待验收；半年报分析台已发布 |
-| service_manager | tools/service_manager/ | server.py（Web，默认 5002） | Python | 启动、重启、关闭服务，查看服务状态与日志 | 待真机验收 |
-| french-learner | tools/french-learner/ | start.bat（一键自检+启动，推荐）+ uvicorn app:app（后端 8000）+ asr_service/server.py（本地语音 8010）/ frontend/index.html（可离线直开） | Python + HTML/JS | 呀呀法语：Web 法语学习产品，重述式 AI 口语陪练（智谱 GLM 可插拔 + 降级）+ i+1 分级输入流（21 篇）+ 本地 Whisper 语音识别 + 神经语音朗读 + 生词卡 + SM-2 复习 + CEFR 快速定级（12 题加权分组算分）+ DELF/TCF 考级冲刺（2 套原创模拟卷，第 4 个 Tab）；独立 Git 仓库（已关联远程 `yyhhff/french-learner`，SSH over 443），多角色协作 | 阶段二完成，独立 QA 109/109 通过；已接入本机 `ZHIPU_API_KEY` 真实验收；对话双方均支持 🔊 标准发音 + 中文翻译；一键启动脚本 start.bat（TASK-0020）真机三场景验证通过；阶段 0 CEFR 定级（TASK-0022）QA 16/16 PASS；阶段 4 考级冲刺（TASK-0023）QA 112 PASS，待上级验收 |
+| 工具 | 路径 | 入口 | 功能一句话 | 状态 | 详情 |
+|------|------|------|-----------|------|------|
+| xhs_crawler | tools/xhs_crawler/ | server.py（Web）/ main.py（CLI） | Python 爬取指定博主、指定时间范围内的小红书博文，本地 Web 界面 + CLI | 待真机验收 | tools/xhs_crawler/README.md |
+| annual_report_reader | tools/annual_report_reader/ | server.py（Web，:5001）/ main.py（CLI）/ h1_2026.html（单页分析台） | 行业龙头年报带读（申万一级 31 行业 × 每行业市值前 3 龙头，GLM，自定义行业/公司，记忆增量续跑）；扩展「2026 A股半年报分析台」六板块单页 | 核心链路已验收，GLM 生成待验收；半年报分析台已发布 | README.md；半年报详见 h1_2026_docs/USER_GUIDE.md |
+| service_manager | tools/service_manager/ | server.py（Web，:5002） | Python 启动、重启、关闭服务，查看服务状态与日志 | 待真机验收 | tools/service_manager/README.md |
+| french-learner | tools/french-learner/ | start.bat 一键启动（后端 :8000 被占自动回退 8001-8019 + 本地语音 :8010；可离线直开 frontend/index.html） | 呀呀法语：Web 法语学习产品（重述式 AI 口语陪练 + i+1 分级输入 + CEFR 定级 + 生词卡 SM-2 复习 + DELF/TCF 考级冲刺）；独立 Git 仓库 | 阶段 0/1/2/3/4 已实现；QA 109/109、16/16、112 PASS；阶段 0/4 待上级验收 | tools/french-learner/README.md（架构契约与 QA 报告在其 docs/） |
+| workbuddy-multi-account | tools/workbuddy-multi-account/ | server.py（FastAPI，:8000） | WorkBuddy 多账号管理：多账号登录、自动签到、聊天记录合并与迁移，Web 管理面板 | 进行中（基础 API 已实现，待前端开发） | tools/workbuddy-multi-account/README.md |
 
 ## 常见需求 → 改动点定位
 
 | 需求类型 | 去哪里改 | 需要同步更新 |
 |----------|----------|--------------|
 | 新增一个小工具 | 复制 `tools/_template/` → `tools/<工具名>/` | 本文件工具索引、`data_content.md` |
-| 修改某工具逻辑 | `tools/<工具名>/` | 视情况更新工具 README |
+| 修改某工具逻辑 | `tools/<工具名>/` | 工具 README（详情写工具内部文档） |
+| 工具新增功能/特性 | 工具代码 + 工具内 README/docs | 本文件索引行（一行内更新状态） |
 | 修改工具的输入/输出 | 工具目录 + `data/` 下对应文件 | `data_content.md` |
 | 抽取/新增公共函数 | `shared/` | 本文件目录职责（如有新目录） |
 | 调整 AI 工作流/规范 | `AGENTS.md` | 无 |
@@ -70,5 +79,5 @@ tool_box/
 1. 复制 `tools/_template/` 为 `tools/<工具名>/`（小写英文 + 连字符命名）
 2. 填写工具 `README.md`（用途、用法、输入输出、依赖）
 3. 实现逻辑，数据读写遵循 `data/` 目录约定（见数据地图）
-4. 更新本文件"工具索引" + `docs/data_content.md` 数据登记
+4. 更新本文件"工具索引"（一行索引，详情写进工具 README）+ `docs/data_content.md` 数据登记
 5. 按 AGENTS.md 工作流登记任务，完成后提交 git
