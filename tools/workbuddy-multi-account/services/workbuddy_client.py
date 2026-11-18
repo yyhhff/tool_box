@@ -52,8 +52,12 @@ def valid_token(token):
 
 
 def token_format(token):
-    """明文 token 符合字符集；密文是客户端加密串（含非白名单字符）。
-    加密 token 需客户端 auth helper 解密，本工具不支持运行时解密。"""
+    """明文 token 符合字符集；加密 token 是 {$wbEncrypted, envelope} 对象；
+    其余（空/错误类型）为 invalid。"""
+    if isinstance(token, dict):
+        if token.get("$wbEncrypted") == 1 and "envelope" in token:
+            return "encrypted"
+        return "invalid"
     if not isinstance(token, str) or not token:
         return "invalid"
     if valid_token(token):
@@ -86,6 +90,8 @@ def load_session(auth_file, attempts=3, delay=2.0):
     """读取凭据 JSON：{"auth": {"accessToken": ..., "endpoint": ...}}。
 
     带重试：客户端刷新 token 时会短暂独占凭据文件（PermissionError 是瞬时的）。
+    加密 token（{$wbEncrypted, envelope}）在运行时经 WorkBuddy 客户端解密，
+    明文仅存在于内存；快照文件始终保持密文原样。
     """
     last = None
     for i in range(attempts):
@@ -99,10 +105,7 @@ def load_session(auth_file, attempts=3, delay=2.0):
                 raise AuthError("AUTH_INVALID",
                                 "凭据文件 accessToken 为空或格式非法：%s" % auth_file)
             if fmt == "encrypted":
-                raise AuthError(
-                    "AUTH_ENCRYPTED",
-                    "凭据为客户端加密串，请先在 WorkBuddy 桌面端重新登录一次"
-                    "（重新登录通常会落盘明文 token），或升级支持解密")
+                token = _decrypt_encrypted_token(token)
             endpoint = auth.get("endpoint") or WORKBUDDY_ENDPOINT_DEFAULT
             return {"auth": {"accessToken": token, "endpoint": endpoint.rstrip("/")}}
         except PermissionError as e:
@@ -110,6 +113,15 @@ def load_session(auth_file, attempts=3, delay=2.0):
             if i < attempts - 1:
                 time.sleep(delay)
     raise last
+
+
+def _decrypt_encrypted_token(token):
+    """经 WorkBuddy 客户端运行时解密加密 token（仅内存）。"""
+    from services import auth_helper
+    try:
+        return auth_helper.decrypt_token(token)
+    except auth_helper.AuthHelperError as e:
+        raise AuthError(e.reason, str(e)) from None
 
 
 def snapshot_credential(auth_file, credential_path):

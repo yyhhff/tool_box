@@ -3,8 +3,9 @@
 """
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+from datetime import datetime
 
-from models import Account, get_db
+from models import Account, CheckinRecord, get_db
 
 router = APIRouter(prefix="/api/checkin", tags=["签到管理"])
 

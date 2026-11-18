@@ -166,8 +166,26 @@ SQLite 数据库（本地存储）
 
 ### 环境限制说明
 
-- 本机未装 WorkBuddy 桌面端（凭据文件不存在），真实签到/登录全链路待用户装好后真机验收；错误路径（无凭据 503/422、假 token 401、网络不可达 -1）已全部验证
-- 本机无 git（多位置探测确认），TASK-0024 的 git 提交待用户安装 git 后执行
+- 本机无独立安装的 git；实际使用 WorkBuddy 桌面端自带 PortableGit（G:\WorkBuddy\resources\vendor\PortableGit），已加入用户 PATH
+
+### 第三轮（真机验收，2026-11-19）：核心链路全部通过 ✅
+
+用户登录 WorkBuddy 桌面端后验收：
+- 凭据文件落盘，但 accessToken 为**加密信封**（{$wbEncrypted:1, envelope: base64(sym-v1)）
+- 移植官方 auth helper 解密机制（MIT, 88lin）：以 ELECTRON_RUN_AS_NODE=1 用 WorkBuddy.exe 执行内嵌 JS，AES-256-GCM + 原生存储密钥解密；probe 验证 Electron 37.10.3 可用；明文仅内存不落盘
+- 真机验收结果：
+  1. bind 快照成功（acc_20261119004740_1a45a6 / my-work）
+  2. 真实状态探测 **online**（解密 → Bearer → copilot.tencent.com）
+  3. **真实签到 +100 积分到账**（服务端回读：今日 100 / 连续 4 天 / 累计 400）；成长任务领 3 成功、1 真实业务拒绝（公众号任务未完成，正确处理未崩溃）
+  4. 签到记录 4 条入库、分账号统计正确、账号列表真实状态在线
+
+修复缺陷：
+7. D7：auth_helper.decrypt_token 入口校验假设 token 为字符串，但真实凭据是 dict（{$wbEncrypted, envelope}）→ 入口接受 dict/str 两种形态
+8. D8：token_format 对 dict 形态误判 invalid → 增加加密对象判定
+9. D9：probe 的 closing(Popen) 用法错误（Popen 无 close）→ 改 try/finally
+10. D10：api/checkin.py 清理 import 时误删 datetime/CheckinRecord（与 D6 同类）→ 补回
+
+遗留：聊天记录获取接口未在 auto-signin/2api-panel 中发现（它们只覆盖签到/任务/网关），聊天合并功能依赖后续探索 WorkBuddy 会话 API 或本地会话数据导出；多账号第二账号 bind 待用户切换登录后验收。
 
 ### 输出物与验收标准
 
