@@ -50,7 +50,7 @@ tool_box/
 | xhs_crawler | tools/xhs_crawler/ | server.py（Web）/ main.py（CLI） | Python | 爬取指定博主、指定时间范围内的小红书博文，本地 Web 界面 + CLI | 待真机验收 |
 | annual_report_reader | tools/annual_report_reader/ | server.py（Web，默认 5001）/ main.py（CLI）/ h1_2026.html（单页分析台） | Python + HTML/JS | 申万一级 31 行业 × 每行业市值前 3 龙头批量年报带读（GLM），自定义行业/公司，有记忆增量续跑；新增「2026 A股半年报分析台」六板块单页（资料库 SDK + 内嵌快照双数据源） | 核心链路已验收，GLM 生成待验收；半年报分析台已发布 |
 | service_manager | tools/service_manager/ | server.py（Web，默认 5002） | Python | 启动、重启、关闭服务，查看服务状态与日志 | 待真机验收 |
-| french-learner | tools/french-learner/ | start.bat（一键自检+启动，推荐）+ uvicorn app:app（后端 8000）+ asr_service/server.py（本地语音 8010）/ frontend/index.html（可离线直开） | Python + HTML/JS | 呀呀法语：Web 法语学习产品，重述式 AI 口语陪练（智谱 GLM 可插拔 + 降级）+ i+1 分级输入流（21 篇）+ 本地 Whisper 语音识别 + 神经语音朗读 + 生词卡 + SM-2 复习；独立 Git 仓库（已关联远程 `yyhhff/french-learner`，SSH over 443），六角色三波协作 | 阶段二完成，独立 QA 109/109 通过；已接入本机 `ZHIPU_API_KEY` 真实验收；对话双方均支持 🔊 标准发音 + 中文翻译；一键启动脚本 start.bat（TASK-0020）真机三场景验证通过，待上级验收 |
+| french-learner | tools/french-learner/ | start.bat（一键自检+启动，推荐）+ uvicorn app:app（后端 8000）+ asr_service/server.py（本地语音 8010）/ frontend/index.html（可离线直开） | Python + HTML/JS | 呀呀法语：Web 法语学习产品，重述式 AI 口语陪练（智谱 GLM 可插拔 + 降级）+ i+1 分级输入流（21 篇）+ 本地 Whisper 语音识别 + 神经语音朗读 + 生词卡 + SM-2 复习 + CEFR 快速定级（12 题加权分组算分）+ DELF/TCF 考级冲刺（2 套原创模拟卷，第 4 个 Tab）；独立 Git 仓库（已关联远程 `yyhhff/french-learner`，SSH over 443），多角色协作 | 阶段二完成，独立 QA 109/109 通过；已接入本机 `ZHIPU_API_KEY` 真实验收；对话双方均支持 🔊 标准发音 + 中文翻译；一键启动脚本 start.bat（TASK-0020）真机三场景验证通过；阶段 0 CEFR 定级（TASK-0022）QA 16/16 PASS；阶段 4 考级冲刺（TASK-0023）QA 112 PASS，待上级验收 |
 
 ## 常见需求 → 改动点定位
 

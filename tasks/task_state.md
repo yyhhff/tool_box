@@ -11,8 +11,9 @@
 | TASK-0005 | 小红书爬虫 Web 前端 + 依赖安装 | 中 | 进行中（代码完成，待验收） | tasks/active/TASK-0005-web-ui.md |
 | TASK-0006 | 反爬加固 + 登录增强（Cookie 导入/风控即停） | 高 | 进行中（代码完成，待验收） | tasks/active/TASK-0006-anti-crawl-login.md |
 | TASK-0007 | 修复假登录误判 + 保留 xsec_token + 异常落日志 | 高 | 进行中（代码完成，待验收） | tasks/active/TASK-0007-fix-false-login.md |
-| TASK-0016 | 呀呀法语阶段二（GLM 可插拔重述 + i+1 输入流） | 高 | 完成（独立 QA 109/109 通过；真实 ZHIPU_API_KEY 端到端冒烟通过；验收期缺陷 D1 已修复并回归，待验收） | tasks/active/TASK-0016-french-learner-phase2.md |
+| TASK-0016 | 呀呀法语阶段二（GLM 可插拔重述 + i+1 输入流） | 高 | 完成（独立 QA 109/109 通过；真实 ZHIPU_API_KEY 端到端冒烟通过；验收期缺陷 D1/D2 已修复并回归，待验收） | tasks/active/TASK-0016-french-learner-phase2.md |
 | TASK-0020 | 呀呀法语一键启动脚本（自检 + 启动 + 健康检查） | 中 | 进行中（真机三场景验证通过，待验收） | tasks/active/TASK-0020-french-learner-oneclick-start.md |
+| TASK-0021 | 生词卡前端重设计（自适应长内容 + 视觉统一） | 中 | 进行中 | tasks/active/TASK-0021-wordcard-redesign.md |
 
 ## 归档记录
 
@@ -32,3 +33,5 @@
 | TASK-0017 | french-learner 关联 GitHub 远程并推送（SSH over 443） | 2026-11-17 | tasks/archive/2026-11/TASK-0017-french-learner-git-remote.md |
 | TASK-0018 | french-learner git 跟踪范围审查与 .env 防泄露修复 | 2026-11-17 | tasks/archive/2026-11/TASK-0018-french-learner-gitignore-audit.md |
 | TASK-0019 | 2026 A股半年报分析台（annual_report_reader 扩展） | 2026-11-18 | tasks/archive/2026-11/TASK-0019-h1-2026-dashboard.md（六角色协作；六表入库、单页发布、QA 35/35 PASS） |
+| TASK-0022 | 呀呀法语阶段 0：CEFR 定级（wave 1） | 2026-11-18 | tasks/active/TASK-0022-french-placement-assessment.md（待上级验收；QA 16/16 PASS；总指挥裁决契约冲突、真实服务冒烟通过） |
+| TASK-0023 | 呀呀法语阶段 4：DELF B2 / TCF 冲刺（wave 2） | 2026-11-18 | tasks/active/TASK-0023-french-exam-sprint.md（待上级验收；QA 112 PASS；总指挥裁决口语独立录音链路、隔离库零污染、真实 GLM + 无头浏览器端到端冒烟通过） |
