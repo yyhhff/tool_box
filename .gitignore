@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+build/
+dist/
+
+# 数据与产物（输入数据入库，产出与缓存不入库）
+data/output/
+data/cache/
+
+# IDE / 系统
+.idea/
+.vscode/
+Thumbs.db
+.DS_Store
+
+# 日志与临时文件
+*.log
+*.tmp
+
+# QA 临时工作区（含音频/中间产物）
+.qa_asr_work/
+
+# 独立 Git 仓库的子项目（自带 .git，独立管理，不嵌套提交）
+tools/french-learner/

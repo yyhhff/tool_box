@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>xhs_crawler 小红书博文爬取</title>
+<style>
+  :root { --bg:#f5f6f8; --card:#fff; --line:#e3e6ea; --txt:#22262b; --sub:#7a828c; --brand:#ff4f6a; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:"Segoe UI","Microsoft YaHei",system-ui,sans-serif; background:var(--bg); color:var(--txt); }
+  .wrap { max-width:1080px; margin:0 auto; padding:24px 16px 64px; }
+  h1 { font-size:22px; margin:0 0 4px; }
+  h1 .dot { color:var(--brand); }
+  .sub { color:var(--sub); font-size:13px; margin-bottom:20px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px; margin-bottom:16px; }
+  label { display:block; font-size:12px; color:var(--sub); margin-bottom:4px; }
+  input[type=text],input[type=date],input[type=number] { width:100%; padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:14px; }
+  .grid { display:grid; grid-template-columns:2fr 1fr 1fr auto; gap:12px; align-items:end; }
+  .opts { display:flex; gap:18px; margin-top:12px; font-size:13px; color:var(--sub); align-items:center; flex-wrap:wrap; }
+  .opts label { display:flex; align-items:center; gap:6px; margin:0; font-size:13px; }
+  button { padding:9px 18px; border:0; border-radius:6px; background:var(--brand); color:#fff; font-size:14px; cursor:pointer; }
+  button:disabled { background:#c9ccd1; cursor:not-allowed; }
+  button.ghost { background:#fff; color:var(--txt); border:1px solid var(--line); padding:6px 12px; font-size:13px; }
+  #log { background:#1e2229; color:#cdd3dc; font-family:Consolas,monospace; font-size:12px; line-height:1.7; border-radius:8px; padding:12px; height:220px; overflow:auto; white-space:pre-wrap; }
+  .banner { display:none; padding:10px 12px; border-radius:8px; margin-bottom:12px; font-size:13px; }
+  .banner.err { display:block; background:#fdecef; color:#b3213a; }
+  .banner.ok { display:block; background:#e8f7ee; color:#177245; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th,td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); }
+  th { color:var(--sub); font-weight:600; background:#fafbfc; }
+  tbody tr { cursor:pointer; }
+  tbody tr:hover { background:#fdf2f4; }
+  .num { text-align:right; }
+  a { color:var(--brand); text-decoration:none; }
+  .chip { display:inline-block; margin:0 8px 8px 0; }
+  .meta { font-size:12px; color:var(--sub); margin:4px 0 12px; }
+  .overlay { display:none; position:fixed; inset:0; background:rgba(20,22,26,.45); z-index:10; padding:24px; }
+  .overlay.open { display:block; }
+  .modal { background:#fff; max-width:760px; margin:0 auto; border-radius:10px; padding:20px 22px; max-height:calc(100vh - 48px); overflow:auto; }
+  .modal h2 { font-size:17px; margin:0 0 6px; }
+  .modal .stats { color:var(--sub); font-size:12px; margin-bottom:12px; }
+  .modal .content { white-space:pre-wrap; font-size:14px; line-height:1.8; margin-bottom:12px; }
+  .imggrid { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:8px; margin-bottom:12px; }
+  .imggrid img { width:100%; border-radius:6px; display:block; }
+  .imglinks { font-size:13px; margin-bottom:12px; }
+  .empty { color:var(--sub); font-size:13px; text-align:center; padding:18px 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1><span class="dot">&#9679;</span> xhs_crawler 小红书博文爬取</h1>
+  <div class="sub">指定博主 &middot; 指定时间范围 &middot; 本地运行，仅供个人存档</div>
+
+  <div id="banner" class="banner"></div>
+
+  <div class="card">
+    <label>登录管理 <span id="login-status" style="font-weight:normal;color:var(--sub)"></span></label>
+    <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:10px">
+      <button class="ghost" id="btn-qr">扫码登录</button>
+      <span style="font-size:12px;color:var(--sub)">最长等待 10 分钟，扫码/短信均可；或直接粘贴 Cookie 导入</span>
+    </div>
+    <div style="display:flex; gap:8px">
+      <textarea id="cookie-input" placeholder="从浏览器 F12 → 网络 → 任一请求 → 请求头里复制 cookie，形如：a1=...; web_session=..." style="flex:1; min-height:56px; padding:8px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px; font-family:Consolas,monospace; resize:vertical"></textarea>
+      <button class="ghost" id="btn-cookie">导入</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="grid">
+      <div><label>博主 ID 或主页链接</label><input type="text" id="user" placeholder="如 65a1b2c3... 或 https://www.xiaohongshu.com/user/profile/..."></div>
+      <div><label>起始日期（含）</label><input type="date" id="start"></div>
+      <div><label>结束日期（含）</label><input type="date" id="end"></div>
+      <div><label>&nbsp;</label><button id="btn-start">开始抓取</button></div>
+    </div>
+    <div class="opts">
+      <label><input type="checkbox" id="dl-img"> 下载图片</label>
+      <label>最大抓取数 <input type="number" id="max-notes" value="500" min="1" style="width:72px"></label>
+      <span id="run-hint">首次运行会弹出浏览器要求扫码登录</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <label>运行日志</label>
+    <div id="log"></div>
+  </div>
+
+  <div class="card">
+    <label>历史抓取记录（点击载入）</label>
+    <div id="history"><span class="empty">暂无</span></div>
+  </div>
+
+  <div class="card">
+    <div class="meta" id="result-meta"></div>
+    <div style="overflow:auto">
+      <table>
+        <thead><tr><th>#</th><th>日期</th><th>标题</th><th class="num">赞</th><th class="num">藏</th><th class="num">评</th><th>原文</th></tr></thead>
+        <tbody id="tbody"><tr><td colspan="7" class="empty">尚未抓取</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal" id="modal"></div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g,
+    c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+let currentRun = null;
+
+function banner(type, msg) {
+  const b = $("banner");
+  if (!msg) { b.className = "banner"; b.textContent = ""; return; }
+  b.className = "banner " + type; b.textContent = msg;
+}
+
+async function postJSON(url, body) {
+  const r = await fetch(url, {method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(body || {})});
+  return r.json();
+}
+
+async function startCrawl() {
+  const body = {
+    user: $("user").value.trim(),
+    start: $("start").value || null,
+    end: $("end").value || null,
+    download_images: $("dl-img").checked,
+    max_notes: Number($("max-notes").value) || 500,
+  };
+  if (!body.user) { banner("err", "请填写博主 ID 或主页链接"); return; }
+  const res = await postJSON("/api/start", body);
+  if (!res.ok) { banner("err", res.error || "启动失败"); return; }
+  banner("ok", "任务已启动，抓取过程中请勿关闭弹出的浏览器窗口");
+}
+
+async function poll() {
+  let st;
+  try { st = await (await fetch("/api/status")).json(); } catch (e) { return; }
+  $("log").textContent = (st.logs || []).join("\n");
+  $("log").scrollTop = $("log").scrollHeight;
+  $("btn-start").disabled = !!st.running;
+  $("run-hint").textContent = st.running ? "抓取进行中..." : "首次运行会弹出浏览器要求扫码登录";
+  if (st.error) banner("err", "出错：" + st.error);
+  else if (!st.running && st.result) banner("ok", "完成：共 " + st.result.count + " 篇在范围内");
+  else banner(null, null);
+  if (st.result && st.result.run !== currentRun) loadResults(st.result.run);
+}
+
+async function loadResults(run) {
+  currentRun = run;
+  const res = await (await fetch("/api/results?run=" + encodeURIComponent(run))).json();
+  if (!res.ok) return;
+  const notes = res.notes || [];
+  const gen = (res.meta && res.meta.generated_at) || "-";
+  $("result-meta").textContent = "结果集：" + res.run + " · " + notes.length + " 篇 · 生成于 " + gen;
+  const tb = $("tbody");
+  if (!notes.length) {
+    tb.innerHTML = '<tr><td colspan="7" class="empty">该范围内没有博文</td></tr>';
+    return;
+  }
+  tb.innerHTML = notes.map((n, i) =>
+    '<tr data-i="' + i + '"><td>' + (i + 1) + '</td>' +
+    '<td>' + esc(n.date || "未知") + '</td>' +
+    '<td>' + esc(n.title) + '</td>' +
+    '<td class="num">' + n.likes + '</td>' +
+    '<td class="num">' + n.collects + '</td>' +
+    '<td class="num">' + n.comments + '</td>' +
+    '<td><a href="' + esc(n.url) + '" target="_blank" rel="noopener">打开</a></td></tr>'
+  ).join("");
+  Array.prototype.forEach.call(tb.rows, tr =>
+    (tr.onclick = () => showNote(notes[Number(tr.dataset.i)])));
+}
+
+function showNote(n) {
+  const local = (n.local_images || []).map(u =>
+    '<div><img loading="lazy" src="' + esc(u) + '"></div>').join("");
+  const links = (n.images || []).map((u, i) =>
+    '<div>图' + (i + 1) + '：<a href="' + esc(u) + '" target="_blank" rel="noopener">' +
+    esc(u.slice(0, 80)) + '...</a></div>').join("");
+  const imgPart = local
+    ? '<div class="imggrid">' + local + '</div>'
+    : (links ? '<div class="imglinks"><div style="margin-bottom:4px">未下载图片（重新抓取时勾选"下载图片"）：</div>' + links + '</div>' : "");
+  $("modal").innerHTML =
+    '<h2>' + esc(n.title) + '</h2>' +
+    '<div class="stats">' + esc(n.date || "日期未知") +
+    ' &middot; 赞 ' + n.likes + ' &middot; 藏 ' + n.collects +
+    ' &middot; 评 ' + n.comments +
+    ' &middot; <a href="' + esc(n.url) + '" target="_blank" rel="noopener">查看原文</a></div>' +
+    '<div class="content">' + esc(n.content || "(无正文)") + '</div>' +
+    imgPart +
+    '<button class="ghost" onclick="document.getElementById(\'overlay\').classList.remove(\'open\')">关闭</button>';
+  $("overlay").classList.add("open");
+}
+
+async function loadHistory() {
+  const res = await (await fetch("/api/history")).json();
+  if (!res.ok || !res.items || !res.items.length) return;
+  $("history").innerHTML = res.items.map(h =>
+    '<span class="chip"><button class="ghost" data-run="' + esc(h.run) + '">' +
+    esc(h.run) + ' &middot; ' + h.count + ' 篇</button></span>').join("");
+  Array.prototype.forEach.call($("history").querySelectorAll("button"),
+    b => (b.onclick = () => loadResults(b.dataset.run)));
+}
+
+async function refreshLogin() {
+  let st;
+  try { st = await (await fetch("/api/login_status")).json(); } catch (e) { return; }
+  const el = $("login-status");
+  if (st.busy) {
+    el.textContent = "（登录进行中，剩余 " + st.remaining + " 秒" +
+      (st.message ? "：" + st.message : "") + "）";
+    $("btn-qr").disabled = true;
+  } else {
+    el.textContent = st.has_state ? "（已保存登录态）" : "（未登录）";
+    if (st.message) el.textContent += " " + st.message;
+    $("btn-qr").disabled = false;
+  }
+}
+
+async function startQrLogin() {
+  const r = await postJSON("/api/login_qr");
+  if (!r.ok) { banner("err", r.error || "无法启动登录"); return; }
+  banner("ok", "已打开浏览器窗口，请在其中完成登录（最长等待 10 分钟）");
+  refreshLogin();
+}
+
+async function importCookie() {
+  const v = $("cookie-input").value.trim();
+  if (!v) { banner("err", "请先粘贴 cookie 内容"); return; }
+  const r = await postJSON("/api/login_cookie", {cookie: v});
+  banner(r.ok ? "ok" : "err", r.ok ? (r.message || "导入成功") : (r.error || "导入失败"));
+  if (r.ok) $("cookie-input").value = "";
+  refreshLogin();
+}
+
+$("btn-start").onclick = startCrawl;
+$("btn-qr").onclick = startQrLogin;
+$("btn-cookie").onclick = importCookie;
+$("overlay").onclick = e => { if (e.target === $("overlay")) $("overlay").classList.remove("open"); };
+loadHistory();
+refreshLogin();
+poll();
+setInterval(poll, 1500);
+setInterval(refreshLogin, 2000);
+</script>
+</body>
+</html>

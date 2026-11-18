@@ -1,0 +1,1327 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>2026 A股半年报分析台</title>
+<style>
+  :root { --bg:#f5f6f8; --card:#fff; --line:#e3e6ea; --txt:#22262b; --sub:#7a828c; --brand:#2f6fed; --up:#c0392b; --down:#159957; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:"Segoe UI","Microsoft YaHei",system-ui,sans-serif; background:var(--bg); color:var(--txt); padding-bottom:78px; }
+  .wrap { max-width:1180px; margin:0 auto; padding:22px 16px 40px; }
+  h1 { font-size:23px; margin:0 0 4px; }
+  h1 .dot { color:var(--brand); }
+  .sub { color:var(--sub); font-size:13px; margin-bottom:12px; }
+  .head-row { display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:12px; }
+  .mode-badge { font-size:12px; padding:4px 12px; border-radius:12px; background:#fff6e6; color:#a86a00; border:1px solid #f0dcae; }
+  .mode-badge.sdk { background:#e8f7ee; color:#177245; border-color:#bfe6cd; }
+  .mode-badge.mixed { background:#eef3ff; color:#2f6fed; border-color:#c9d9ff; }
+  .topnav { display:flex; gap:6px; flex-wrap:wrap; background:var(--card); border:1px solid var(--line); border-radius:10px; padding:8px; margin-bottom:14px; }
+  .topnav a { text-decoration:none; color:var(--sub); font-size:13px; padding:7px 12px; border-radius:6px; white-space:nowrap; }
+  .topnav a:hover { background:#f0f4ff; color:var(--brand); }
+  .topnav a.on { background:var(--brand); color:#fff; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px; margin-bottom:16px; scroll-margin-top:12px; }
+  .card h2 { font-size:15px; margin:0 0 6px; }
+  .card h2 .hint { font-weight:normal; color:var(--sub); font-size:12px; margin-left:8px; }
+  .globalbar label { display:block; font-size:12px; color:var(--sub); margin-bottom:4px; }
+  .globalbar .row { display:flex; gap:12px; align-items:end; flex-wrap:wrap; }
+  .globalbar .row > div { min-width:130px; }
+  select, input[type=text] { padding:7px 9px; border:1px solid var(--line); border-radius:6px; font-size:13px; background:#fff; color:var(--txt); }
+  button { padding:8px 14px; border:0; border-radius:6px; background:var(--brand); color:#fff; font-size:13px; cursor:pointer; }
+  button:hover { opacity:.92; }
+  button.ghost { background:#fff; color:var(--txt); border:1px solid var(--line); padding:6px 12px; font-size:12px; }
+  button.ghost:hover { border-color:var(--brand); color:var(--brand); }
+  .bar-actions { display:flex; gap:8px; margin-top:12px; flex-wrap:wrap; }
+  .meta { font-size:12px; color:var(--sub); margin:4px 0 10px; line-height:1.7; }
+  .rule-box { background:#f7f9fc; border:1px solid var(--line); border-left:3px solid var(--brand); border-radius:6px; padding:10px 12px; font-size:12px; color:#4a525c; line-height:1.8; margin-bottom:12px; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th,td { text-align:left; padding:7px 9px; border-bottom:1px solid var(--line); white-space:nowrap; }
+  th { color:var(--sub); font-weight:600; background:#fafbfc; position:sticky; top:0; }
+  th[data-sort]:hover { color:var(--brand); }
+  tbody tr:hover { background:#f0f4ff; }
+  tbody tr.hl { background:#eef3ff; box-shadow:inset 3px 0 0 var(--brand); }
+  .scroll { overflow-x:auto; }
+  .up { color:var(--up); font-weight:600; }
+  .down { color:var(--down); font-weight:600; }
+  .flat { color:var(--sub); }
+  .empty { color:var(--sub); font-size:13px; text-align:center; padding:18px 0; }
+  .pill { font-size:11px; padding:2px 9px; border-radius:10px; display:inline-block; }
+  .pill.done { background:#e8f7ee; color:#177245; }
+  .pill.warn { background:#fff6e6; color:#a86a00; }
+  .pill.info { background:#eef3ff; color:#2f6fed; }
+  .cal { font-size:10px; font-weight:600; color:var(--brand); margin-left:3px; vertical-align:super; }
+  .mini-cards { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px; }
+  .mcard { flex:1 1 150px; background:#f7f9fc; border:1px solid var(--line); border-radius:8px; padding:10px 12px; }
+  .mcard .label { font-size:12px; color:var(--sub); }
+  .mcard .val { font-size:20px; font-weight:700; margin:4px 0; }
+  .mcard .note { font-size:11px; color:var(--sub); }
+  .minibar { width:56px; height:6px; background:#e9ecf1; border-radius:3px; display:inline-block; vertical-align:middle; margin-right:6px; overflow:hidden; }
+  .minibar > i { display:block; height:100%; }
+  .chk { width:15px; height:15px; cursor:pointer; }
+  .cmp-box { margin-top:12px; }
+  .overlay { display:none; position:fixed; inset:0; background:rgba(20,22,26,.45); z-index:20; padding:24px; }
+  .overlay.open { display:block; }
+  .modal { background:#fff; max-width:820px; margin:0 auto; border-radius:10px; padding:22px 26px; max-height:calc(100vh - 48px); overflow:auto; }
+  .modal h3 { margin:0 0 10px; font-size:17px; }
+  .src-body { font-size:13px; line-height:1.9; }
+  .src-body h4 { font-size:14px; margin:14px 0 4px; color:var(--brand); }
+  .src-body table { margin:6px 0 10px; }
+  .src-body th,.src-body td { border:1px solid var(--line); }
+  .disclaimer { position:fixed; left:0; right:0; bottom:0; background:#2b2f36; color:#c7ced8; font-size:12px; line-height:1.7; padding:10px 16px; z-index:15; text-align:center; }
+  .kpi-grid { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:10px; padding:12px; }
+  .kpi-item { background:#f7f9fc; border:1px solid var(--line); border-radius:8px; padding:10px 12px; min-width:0; }
+  .kpi-item .label { font-size:12px; color:var(--sub); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .kpi-item .val { font-size:19px; font-weight:700; margin:6px 0 2px; white-space:nowrap; }
+  .kpi-item .val.small { font-size:12px; font-weight:600; white-space:normal; line-height:1.5; }
+  .kpi-item .note { font-size:11px; color:var(--sub); }
+  .sync-status { font-size:12px; color:#8a5a00; background:#fff8ec; border:1px solid #f0dcae; border-radius:6px; padding:7px 12px; margin-top:10px; }
+  .sync-status.sdk { background:#e8f7ee; color:#177245; border-color:#bfe6cd; }
+  .sync-status.mixed { background:#eef3ff; color:#2f6fed; border-color:#c9d9ff; }
+  @media (max-width:720px){ .globalbar .row > div { min-width:110px; } .kpi-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="head-row">
+    <h1><span class="dot">&#9679;</span> 2026 A股半年报分析台</h1>
+    <span class="mode-badge" id="mode-badge">离线静态快照模式</span>
+  </div>
+  <div class="sub">2026H1 半年度报告累计口径（2026-01-01 ~ 2026-06-30，非单季、非年化） &middot; 数据时点 2026-11-18 &middot; 涨红跌绿</div>
+
+  <div class="card kpi-grid" id="kpi-grid">
+    <div class="kpi-item" data-sp-bindable="database" data-sp-database-id="jezLWgpJEnpUX9BlKQScBD"><div class="label">覆盖公司数</div><div class="val" id="kpi-count">&mdash;</div><div class="note">全市场正式总榜</div></div>
+    <div class="kpi-item" data-sp-bindable="database" data-sp-database-id="jezLWgpJEnpUX9BlKQScBD"><div class="label">全市场样本</div><div class="val small" id="kpi-sample">&mdash;</div><div class="note">样本说明</div></div>
+    <div class="kpi-item" data-sp-bindable="database" data-sp-database-id="jezLWgpJEnpUX9BlKQScBD"><div class="label">样本合计营收</div><div class="val" id="kpi-rev">&mdash;</div><div class="note">2026H1 累计</div></div>
+    <div class="kpi-item" data-sp-bindable="database" data-sp-database-id="jezLWgpJEnpUX9BlKQScBD"><div class="label">样本合计归母净利</div><div class="val" id="kpi-np">&mdash;</div><div class="note">2026H1 累计</div></div>
+    <div class="kpi-item" data-sp-bindable="database" data-sp-database-id="jezLWgpJEnpUX9BlKQScBD"><div class="label">营收/净利双增公司数</div><div class="val" id="kpi-double">&mdash;</div><div class="note">双增榜入榜数</div></div>
+    <div class="kpi-item" data-sp-bindable="database" data-sp-database-id="jezLWgpJEnpUX9BlKQScBD"><div class="label">双增入榜重叠</div><div class="val" id="kpi-ratio">&mdash;</div><div class="note">双增榜中同时进入总榜</div></div>
+    <div class="kpi-item"><div class="label">数据时点 / 口径</div><div class="val small" id="kpi-asof">&mdash;</div><div class="note">2026H1 累计口径</div></div>
+  </div>
+
+  <nav class="topnav" id="topnav">
+    <a href="#s1" data-section="market" class="on">① 全市场总榜</a>
+    <a href="#s2" data-section="chain">② 产业链环节赚钱榜</a>
+    <a href="#s3" data-section="growth">③ 双增公司榜</a>
+    <a href="#s4" data-section="compare">④ 产业链内公司对比</a>
+    <a href="#s5" data-section="watch">⑤ 业绩预告/观察区</a>
+    <a href="#s6" data-section="macro">⑥ 宏观行业对照</a>
+  </nav>
+
+  <!-- 全局联动筛选栏 -->
+  <div class="card globalbar">
+    <h2>全局筛选 <span class="hint">产业链 &rarr; 环节 &rarr; 板块类型 &rarr; 排序 &rarr; 关键词，切换后所有板块联动刷新</span></h2>
+    <div class="row">
+      <div><label>产业链</label><select id="f-chain"></select></div>
+      <div><label>环节</label><select id="f-link"></select></div>
+      <div><label>板块类型</label><select id="f-board">
+        <option value="">全市场</option>
+        <option value="科创板">科创板</option>
+        <option value="创业板">创业板</option>
+        <option value="主板">主板</option>
+      </select></div>
+      <div><label>排序维度（当前板块）</label><select id="f-sort"></select></div>
+      <div><button class="ghost" id="btn-order" title="切换升/降序">降序 &#8595;</button></div>
+      <div style="flex:1 1 200px"><label>关键词搜索</label><input type="text" id="f-keyword" placeholder="代码/名称/行业/预告类型…" style="width:100%"></div>
+    </div>
+    <div class="bar-actions">
+      <button class="ghost" id="btn-reset">重置筛选</button>
+      <button id="btn-export">导出 CSV 备份（当前板块）</button>
+      <button class="ghost" id="btn-export-all">导出全部数据 CSV</button>
+      <button class="ghost" id="btn-refresh">从在线数据表刷新</button>
+      <button class="ghost" id="btn-source">数据来源</button>
+      <span class="meta" id="visible-count" style="margin:0;align-self:center"></span>
+    </div>
+    <div class="sync-status" id="sync-status">● 内置快照数据（可同步在线数据表）</div>
+  </div>
+
+  <!-- ① 全市场正式半年报总榜 -->
+  <section class="card" id="s1">
+    <h2>① 全市场正式半年报总榜 <span class="hint">按营业收入 / 归母净利 / ROE 等排序，点击表头可切换升降序</span></h2>
+    <div class="meta">营收=营业总收入；净利=归母净利润；ROE=加权平均（半年度口径未年化）。金额展示为亿元/万元。</div>
+    <div class="scroll">
+      <table data-section="market" data-sp-bindable="database" data-sp-database-id="jezLWgpJEnpUX9BlKQScBD" id="t-market">
+        <thead><tr>
+          <th data-sort="_rank">#</th>
+          <th data-sort="code">代码</th>
+          <th data-sort="name">公司</th>
+          <th data-sort="swIndustry">申万行业</th>
+          <th data-sort="revenue">营收</th>
+          <th data-sort="revenueYoy">营收同比</th>
+          <th data-sort="netProfit">归母净利</th>
+          <th data-sort="netProfitYoy">净利同比</th>
+          <th data-sort="netMargin" title="归母净利 / 营业总收入">净利率</th>
+          <th data-sort="roe">ROE</th>
+          <th>来源 / 时点</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="bar-actions"><button class="ghost exp-one" data-section="market">导出当前结果</button></div>
+  </section>
+
+  <!-- ② 产业链环节赚钱榜 -->
+  <section class="card" id="s2">
+    <h2>② 产业链环节赚钱榜 <span class="hint">选产业链自动联动环节；按环节汇总，显示环节净利增速与代表公司</span></h2>
+    <div class="meta">粒度为「产业链 &times; 环节」聚合；赚钱能力排名按环节归母净利合计降序；ROE 为环节平均（半年度未年化）。</div>
+    <div class="scroll">
+      <table data-section="chain" data-sp-bindable="database" data-sp-database-id="IuP8NTDiQiln20Mbh0iqZG" id="t-chain">
+        <thead><tr>
+          <th data-sort="chain">产业链</th>
+          <th data-sort="link">环节</th>
+          <th data-sort="companyCount">公司数</th>
+          <th data-sort="revenueSum">营收合计</th>
+          <th data-sort="revenueYoy">营收同比</th>
+          <th data-sort="netProfitSum">净利合计</th>
+          <th data-sort="netProfitYoy">净利同比</th>
+          <th data-sort="netProfitYoyMean" title="环节合计同比">净利同比均值</th>
+          <th data-sort="avgNetMargin" title="环节归母净利合计 / 环节营收合计">平均净利率</th>
+          <th data-sort="roeAvg">平均ROE</th>
+          <th data-sort="profitRank">赚钱排名</th>
+          <th>代表公司</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="bar-actions"><button class="ghost exp-one" data-section="chain">导出当前结果</button></div>
+  </section>
+
+  <!-- ③ 双增公司榜 -->
+  <section class="card" id="s3">
+    <h2>③ 双增公司榜 <span class="hint">营收同比 &gt; 0 且 归母净利同比 &gt; 0，双增强度 = 两者之和</span></h2>
+    <div class="meta">入榜硬条件：revenueYoy &gt; 0 且 netProfitYoy &gt; 0（缺一不可）。</div>
+    <div class="scroll">
+      <table data-section="growth" data-sp-bindable="database" data-sp-database-id="1AYyAsNicDC2Ndr1gPWgkx" id="t-growth">
+        <thead><tr>
+          <th data-sort="_rank">#</th>
+          <th data-sort="code">代码</th>
+          <th data-sort="name">公司</th>
+          <th data-sort="chain">产业链</th>
+          <th data-sort="link">环节</th>
+          <th data-sort="revenue">营收</th>
+          <th data-sort="revenueYoy">营收同比</th>
+          <th data-sort="netProfit">归母净利</th>
+          <th data-sort="netProfitYoy">净利同比</th>
+          <th data-sort="netMargin" title="归母净利 / 营业总收入">净利率</th>
+          <th data-sort="roe">ROE</th>
+          <th data-sort="growthScore">双增强度</th>
+          <th data-sort="discloseDate">披露日</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="bar-actions"><button class="ghost exp-one" data-section="growth">导出当前结果</button></div>
+  </section>
+
+  <!-- ④ 产业链内公司对比 -->
+  <section class="card" id="s4">
+    <h2>④ 产业链内公司对比 <span class="hint">同一产业链/环节内多指标对比，勾选 2-4 家高亮并排比较</span></h2>
+    <div class="meta">行情字段（price 最新价 / changePercent 涨跌幅 / mainNetFlow 当日净流入及 5D/20D）均带交易日 quoteDate，与整理日 asOf 2026-11-18 区分，缺交易日不参与排序；技术指标 techSignal 为客观摘要（非买卖建议），techIndicators 为数值 JSON（鼠标悬停查看）。ROE 为加权平均、半年度未年化。缺失显示 &mdash;。</div>
+    <div class="rule-box" style="border-left-color:#a86a00;background:#fff8ec;color:#8a5a00">含未纳入产业链梳理的龙头（chain/link 留空，如贵州茅台，仅有完整行情）：这类记录<b>仅在「全部产业链 + 全部环节」视图可见</b>，一旦选中具体产业链或环节即被联动过滤掉，属预期行为，不是缺数或报错。</div>
+    <div class="scroll">
+      <table data-section="compare" data-sp-bindable="database" data-sp-database-id="66NlkoEJYsIAFHracM2PKq" id="t-compare">
+        <thead><tr>
+          <th>选</th>
+          <th data-sort="code">代码</th>
+          <th data-sort="name">公司</th>
+          <th data-sort="link">环节</th>
+          <th data-sort="revenue">营收</th>
+          <th data-sort="revenueYoy">营收同比</th>
+          <th data-sort="netProfit">归母净利</th>
+          <th data-sort="netProfitYoy">净利同比</th>
+          <th data-sort="roe">ROE</th>
+          <th data-sort="grossMargin">毛利率</th>
+          <th data-sort="netMargin" title="归母净利 / 营业总收入">净利率</th>
+          <th title="行情日期见每行；缺 quoteDate 的行情值不参与排序">最新价</th>
+          <th>涨跌幅</th>
+          <th title="MainNetFlow 为当日净流入；5D/20D 为中期净流入，单元格以上标标注周期">主力净流入</th>
+          <th>行情日期</th>
+          <th title="技术指标摘要为客观描述，非买卖建议；数值 JSON 见单元格 title">技术指标</th>
+          <th data-sort="linkProfitRank">净利排名</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div id="cmp-selected" class="meta">未选择对比公司（最多 4 家）</div>
+    <div id="cmp-box" class="cmp-box"></div>
+    <div class="bar-actions"><button class="ghost exp-one" data-section="compare">导出当前结果</button></div>
+  </section>
+
+  <!-- ⑤ 业绩预告/待披露观察区 -->
+  <section class="card" id="s5">
+    <h2>⑤ 业绩预告 / 待披露观察区 <span class="hint">未披露自动观察；正式披露且双增自动转正入榜</span></h2>
+    <div class="rule-box">状态规则：<b>待披露未预告 &rarr; 已发业绩预告 &rarr; 已披露正式半年报</b>。未披露公司进入观察区；正式披露且营收/净利双增的公司自动转正，迁入板块①全市场总榜；已转正记录显示「已转正入榜」标记。</div>
+    <div class="rule-box" style="border-left-color:#a86a00;background:#fff8ec;color:#8a5a00">历史观察快照，统计时点 <b id="watch-statdate">2026-07-15</b>；H1 披露已于 8/31 收官。当前无「待披露未预告」活样本；已转正入榜记录的预告类型可能为空，历史预告值见备注。</div>
+    <div class="scroll">
+      <table data-section="watch" data-sp-bindable="database" data-sp-database-id="1Z62ePz3BkWP7V3VyaHoYT" id="t-watch">
+        <thead><tr>
+          <th data-sort="code">代码</th>
+          <th data-sort="name">公司</th>
+          <th data-sort="chain">产业链</th>
+          <th data-sort="link">环节</th>
+          <th data-sort="discloseStatus">披露状态</th>
+          <th data-sort="forecastType">预告类型</th>
+          <th data-sort="forecastYoyMax">预告净利同比</th>
+          <th data-sort="scheduledDate">预约披露日</th>
+          <th>入榜</th>
+          <th>备注</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="bar-actions"><button class="ghost exp-one" data-section="watch">导出当前结果</button></div>
+  </section>
+
+  <!-- ⑥ 宏观行业对照区 -->
+  <section class="card" id="s6">
+    <h2>⑥ 宏观行业对照区 <span class="hint">宏观指标卡 + 申万行业营收/净利增速对照</span></h2>
+    <div class="mini-cards" id="macro-cards"></div>
+    <div class="meta">「宏观指标」层级始终显示，作为全局对照背景；行业/产业链层级随全局产业链联动过滤。</div>
+
+    <!-- 指数行情速览：level==='指数行情' 的记录，盘中快照，非收盘 -->
+    <div style="margin:10px 0 16px;border-top:1px dashed var(--line);padding-top:12px">
+      <h2 style="font-size:14px;margin:0 0 6px">指数行情与资金流速览 <span class="hint">2026-11-18 09:56 盘中快照，非收盘；年初至今基准 2025-12-31</span></h2>
+      <div class="scroll">
+        <table id="t-index-quote" data-sp-bindable="database" data-sp-database-id="KpWBE7eWjsANB0yNeyJL1i">
+          <thead><tr>
+            <th>指数名称</th>
+            <th>最新点位</th>
+            <th>涨跌幅</th>
+            <th>换手率</th>
+            <th>近5日</th>
+            <th>近20日</th>
+            <th>年初至今</th>
+            <th>主力净流入</th>
+            <th>散户净流入<span class="cal" title="按小单净流入近似散户口径">*</span></th>
+            <th>行情时点</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="scroll">
+      <table data-section="macro" data-sp-bindable="database" data-sp-database-id="KpWBE7eWjsANB0yNeyJL1i" id="t-macro">
+        <thead><tr>
+          <th data-sort="name">行业 / 指标</th>
+          <th data-sort="level">层级</th>
+          <th data-sort="chain">关联产业链</th>
+          <th data-sort="revenueYoy">营收同比</th>
+          <th data-sort="netProfitYoy">净利同比</th>
+          <th data-sort="roeAvg" title="行业ROE口径见每行标记（加权·未年化 或 TTM滚动12个月）；表1/3/4公司级roe为加权平均半年度未年化，两者不可混排比较">平均ROE<span class="cal">口径</span></th>
+          <th data-sort="prosperity">景气度</th>
+          <th>对照说明</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="bar-actions"><button class="ghost exp-one" data-section="macro">导出当前结果</button></div>
+  </section>
+
+</div>
+
+<!-- 数据来源弹窗 -->
+<div class="overlay" id="source-overlay">
+  <div class="modal">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <h3>数据来源与口径说明</h3>
+      <button class="ghost" id="btn-source-close">关闭</button>
+    </div>
+    <div class="src-body" id="source-body"></div>
+  </div>
+</div>
+
+<div class="disclaimer">以上内容基于公开数据和量化分析，仅供参考，不构成投资建议。市场有风险，投资需谨慎。任何投资决策应结合个人风险承受能力、资金状况和投资目标独立判断，必要时咨询持牌专业机构。过往表现不预示未来收益。</div>
+
+<script>
+/* =========================================================
+   2026 A股半年报分析台 —— 全内联 / ES5 写法 / 无外部依赖
+   数据层：SNAPSHOT 内嵌快照（总指挥注入点）+ DB 占位 ID（总指挥替换）
+   ========================================================= */
+
+/* ---------- 六个占位 databaseId 常量（总指挥后续替换为真实值） ---------- */
+var DB = {
+  market:  'jezLWgpJEnpUX9BlKQScBD',
+  chain:   'IuP8NTDiQiln20Mbh0iqZG',
+  growth:  '1AYyAsNicDC2Ndr1gPWgkx',
+  compare: '66NlkoEJYsIAFHracM2PKq',
+  watch:   '1Z62ePz3BkWP7V3VyaHoYT',
+  macro:   'KpWBE7eWjsANB0yNeyJL1i'
+};
+/* SDK 校验要求的硬编码 databaseId 常量（默认=market 表，loadAll 按表赋值） */
+var DATABASE_ID = 'jezLWgpJEnpUX9BlKQScBD';
+/* 六表来源标识：供数据来源弹窗与绑定标注一致性校验使用 */
+var DB_SOURCES = [
+  {name:'全市场总榜',databaseId:'jezLWgpJEnpUX9BlKQScBD'},
+  {name:'产业链环节榜',databaseId:'IuP8NTDiQiln20Mbh0iqZG'},
+  {name:'双增公司榜',databaseId:'1AYyAsNicDC2Ndr1gPWgkx'},
+  {name:'产业链内对比',databaseId:'66NlkoEJYsIAFHracM2PKq'},
+  {name:'预告观察区',databaseId:'1Z62ePz3BkWP7V3VyaHoYT'},
+  {name:'宏观行业对照',databaseId:'KpWBE7eWjsANB0yNeyJL1i'}
+];
+/* 兼容层②：CONTRACT 独立常量命名（占位）。若被替换为真实 ID 则优先于 DB[k] 使用 */
+var DB_CHAIN_LINK = '待填', DB_DOUBLE_GROWTH = '待填', DB_CHAIN_COMPANY = '待填';
+var DB_ALIAS = { chain:'DB_CHAIN_LINK', growth:'DB_DOUBLE_GROWTH', compare:'DB_CHAIN_COMPANY' };
+function dbIdFor(k){
+  var name = DB_ALIAS[k];
+  if(name && typeof window !== 'undefined' && window[name] && window[name] !== '待填') return window[name];
+  return DB[k];
+}
+/* 兼容层②续：优先 team-lead 的 __SMART_PAGE__.database，其次 CONTRACT 的全局 SDK */
+function getSDK(){
+  var p = (typeof window !== 'undefined') ? (window.__SMART_PAGE__ && window.__SMART_PAGE__.database) : null;
+  if(p && typeof p.query==='function') return p;
+  var s = (typeof window !== 'undefined') ? window.SDK : null;
+  if(s && typeof s.query==='function') return s;
+  return null;
+}
+
+/* ---------- 六张表内嵌快照数组（总指挥后续注入真实数据） ---------- */
+var SNAPSHOT = {"market":[{"code":"601857","name":"中国石油","swIndustry":null,"chain":null,"link":null,"revenue":1527491000000,"revenueYoy":null,"netProfit":103934000000,"netProfitYoy":null,"deductNetProfit":null,"ocf":null,"roe":null,"grossMargin":null,"discloseDate":null,"source":"WeStock工具返回,东方财富Choice","asOf":"2026-11-18"},{"code":"600028","name":"中国石化","swIndustry":null,"chain":null,"link":null,"revenue":1436561000000,"revenueYoy":null,"netProfit":25627000000,"netProfitYoy":null,"deductNetProfit":null,"ocf":null,"roe":null,"grossMargin":null,"discloseDate":null,"source":"WeStock工具返回,东方财富Choice","asOf":"2026-11-18"},{"code":"601668","name":"中国建筑","swIndustry":null,"chain":null,"link":null,"revenue":975837283000,"revenueYoy":null,"netProfit":23000277000,"netProfitYoy":null,"deductNetProfit":null,"ocf":null,"roe":null,"grossMargin":null,"discloseDate":null,"source":"WeStock工具返回,东方财富Choice","asOf":"2026-11-18"},{"code":"601318","name":"中国平安","swIndustry":null,"chain":null,"link":null,"revenue":575138000000,"revenueYoy":null,"netProfit":92585000000,"netProfitYoy":null,"deductNetProfit":null,"ocf":null,"roe":null,"grossMargin":null,"discloseDate":null,"source":"WeStock工具返回,东方财富Choice","asOf":"2026-11-18"},{"code":"601138","name":"工业富联","swIndustry":null,"chain":"AI算力","link":"服务器整机","revenue":557860645000,"revenueYoy":54.635,"netProfit":23740458000,"netProfitYoy":95.9858,"deductNetProfit":22984123000,"ocf":7391463000,"roe":13.36,"grossMargin":7.1507,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"600941","name":"中国移动","swIndustry":null,"chain":null,"link":null,"revenue":538035000000,"revenueYoy":null,"netProfit":78934000000,"netProfitYoy":null,"deductNetProfit":null,"ocf":null,"roe":null,"grossMargin":null,"discloseDate":null,"source":"WeStock工具返回,东方财富Choice","asOf":"2026-11-18"},{"code":"601390","name":"中国中铁","swIndustry":null,"chain":null,"link":null,"revenue":471761068000,"revenueYoy":null,"netProfit":8655785000,"netProfitYoy":null,"deductNetProfit":null,"ocf":null,"roe":null,"grossMargin":null,"discloseDate":null,"source":"WeStock工具返回,东方财富Choice","asOf":"2026-11-18"},{"code":"601398","name":"工商银行","swIndustry":null,"chain":null,"link":null,"revenue":465859000000,"revenueYoy":null,"netProfit":173682000000,"netProfitYoy":null,"deductNetProfit":null,"ocf":null,"roe":null,"grossMargin":null,"discloseDate":null,"source":"WeStock工具返回,东方财富Choice","asOf":"2026-11-18"},{"code":"601939","name":"建设银行","swIndustry":null,"chain":null,"link":null,"revenue":436529000000,"revenueYoy":null,"netProfit":169564000000,"netProfitYoy":null,"deductNetProfit":null,"ocf":null,"roe":null,"grossMargin":null,"discloseDate":null,"source":"WeStock工具返回,东方财富Choice","asOf":"2026-11-18"},{"code":"601628","name":"中国人寿","swIndustry":null,"chain":null,"link":null,"revenue":434307000000,"revenueYoy":null,"netProfit":134489000000,"netProfitYoy":null,"deductNetProfit":null,"ocf":null,"roe":null,"grossMargin":null,"discloseDate":null,"source":"WeStock工具返回,东方财富Choice","asOf":"2026-11-18"},{"code":"601186","name":"中国铁建","swIndustry":null,"chain":null,"link":null,"revenue":428437974000,"revenueYoy":null,"netProfit":8689842000,"netProfitYoy":null,"deductNetProfit":null,"ocf":null,"roe":null,"grossMargin":null,"discloseDate":null,"source":"WeStock工具返回,东方财富Choice","asOf":"2026-11-18"},{"code":"601288","name":"农业银行","swIndustry":null,"chain":null,"link":null,"revenue":410871000000,"revenueYoy":null,"netProfit":146381000000,"netProfitYoy":null,"deductNetProfit":null,"ocf":null,"roe":null,"grossMargin":null,"discloseDate":null,"source":"WeStock工具返回,东方财富Choice","asOf":"2026-11-18"},{"code":"601988","name":"中国银行","swIndustry":null,"chain":null,"link":null,"revenue":356903000000,"revenueYoy":null,"netProfit":123594000000,"netProfitYoy":null,"deductNetProfit":null,"ocf":null,"roe":null,"grossMargin":null,"discloseDate":null,"source":"WeStock工具返回,东方财富Choice","asOf":"2026-11-18"},{"code":"601319","name":"中国人保","swIndustry":null,"chain":null,"link":null,"revenue":355115000000,"revenueYoy":null,"netProfit":36745000000,"netProfitYoy":null,"deductNetProfit":null,"ocf":null,"roe":null,"grossMargin":null,"discloseDate":null,"source":"WeStock工具返回,东方财富Choice","asOf":"2026-11-18"},{"code":"002594","name":"比亚迪","swIndustry":null,"chain":"新能源汽车","link":"动力电池电芯","revenue":344815421000,"revenueYoy":-7.1282,"netProfit":12325408000,"netProfitYoy":-20.5352,"deductNetProfit":12373343000,"ocf":null,"roe":4.86,"grossMargin":18.8473,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"601800","name":"中国交建","swIndustry":null,"chain":null,"link":null,"revenue":333159728019,"revenueYoy":null,"netProfit":7276820750,"netProfitYoy":null,"deductNetProfit":null,"ocf":null,"roe":null,"grossMargin":null,"discloseDate":null,"source":"WeStock工具返回,东方财富Choice","asOf":"2026-11-18"},{"code":"600362","name":"江西铜业","swIndustry":null,"chain":null,"link":null,"revenue":307154938743,"revenueYoy":19.53,"netProfit":8631822608,"netProfitYoy":106.77,"deductNetProfit":null,"ocf":null,"roe":null,"grossMargin":null,"discloseDate":null,"source":"WeStock工具返回,东方财富Choice","asOf":"2026-11-18"},{"code":"600153","name":"建发股份","swIndustry":null,"chain":null,"link":null,"revenue":303784128199.63,"revenueYoy":null,"netProfit":988909561.37,"netProfitYoy":null,"deductNetProfit":null,"ocf":null,"roe":null,"grossMargin":null,"discloseDate":null,"source":"WeStock工具返回,东方财富Choice","asOf":"2026-11-18"},{"code":"600104","name":"上汽集团","swIndustry":null,"chain":null,"link":null,"revenue":294986941677.51,"revenueYoy":null,"netProfit":5152318161.71,"netProfitYoy":null,"deductNetProfit":null,"ocf":null,"roe":null,"grossMargin":null,"discloseDate":null,"source":"WeStock工具返回,东方财富Choice","asOf":"2026-11-18"},{"code":"600704","name":"物产中大","swIndustry":null,"chain":null,"link":null,"revenue":289876523972.67,"revenueYoy":null,"netProfit":1984908838.21,"netProfitYoy":null,"deductNetProfit":null,"ocf":null,"roe":null,"grossMargin":null,"discloseDate":null,"source":"WeStock工具返回,东方财富Choice","asOf":"2026-11-18"},{"code":"601669","name":"中国电建","swIndustry":null,"chain":null,"link":null,"revenue":289678878149.47,"revenueYoy":null,"netProfit":3820703603.1,"netProfitYoy":null,"deductNetProfit":null,"ocf":null,"roe":null,"grossMargin":null,"discloseDate":null,"source":"WeStock工具返回,东方财富Choice","asOf":"2026-11-18"},{"code":"300750","name":"宁德时代","swIndustry":null,"chain":"新能源汽车","link":"动力电池电芯","revenue":276916580000,"revenueYoy":54.8004,"netProfit":43284002000,"netProfitYoy":41.9839,"deductNetProfit":39013300000,"ocf":null,"roe":12.08,"grossMargin":23.9284,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"000333","name":"美的集团","swIndustry":null,"chain":null,"link":null,"revenue":260042490000,"revenueYoy":null,"netProfit":26446037000,"netProfitYoy":null,"deductNetProfit":null,"ocf":null,"roe":null,"grossMargin":null,"discloseDate":null,"source":"WeStock工具返回,东方财富Choice","asOf":"2026-11-18"},{"code":"601728","name":"中国电信","swIndustry":null,"chain":null,"link":null,"revenue":259010338291.03,"revenueYoy":null,"netProfit":19587741668.36,"netProfitYoy":null,"deductNetProfit":null,"ocf":null,"roe":null,"grossMargin":null,"discloseDate":null,"source":"WeStock工具返回,东方财富Choice","asOf":"2026-11-18"},{"code":"600938","name":"中国海油","swIndustry":null,"chain":null,"link":null,"revenue":242660000000,"revenueYoy":null,"netProfit":85818000000,"netProfitYoy":null,"deductNetProfit":null,"ocf":null,"roe":null,"grossMargin":null,"discloseDate":null,"source":"WeStock工具返回,东方财富Choice","asOf":"2026-11-18"},{"code":"601601","name":"中国太保","swIndustry":null,"chain":null,"link":null,"revenue":212136000000,"revenueYoy":null,"netProfit":30775000000,"netProfitYoy":null,"deductNetProfit":null,"ocf":null,"roe":null,"grossMargin":null,"discloseDate":null,"source":"WeStock工具返回,东方财富Choice","asOf":"2026-11-18"},{"code":"600057","name":"厦门象屿","swIndustry":null,"chain":null,"link":null,"revenue":209045206303.51,"revenueYoy":null,"netProfit":1065997675.72,"netProfitYoy":null,"deductNetProfit":null,"ocf":null,"roe":null,"grossMargin":null,"discloseDate":null,"source":"WeStock工具返回,东方财富Choice","asOf":"2026-11-18"},{"code":"601868","name":"中国能建","swIndustry":null,"chain":null,"link":null,"revenue":208312252000,"revenueYoy":null,"netProfit":2278608000,"netProfitYoy":null,"deductNetProfit":null,"ocf":null,"roe":null,"grossMargin":null,"discloseDate":null,"source":"WeStock工具返回,东方财富Choice","asOf":"2026-11-18"},{"code":"600050","name":"中国联通","swIndustry":null,"chain":null,"link":null,"revenue":201363902351,"revenueYoy":null,"netProfit":4138833223,"netProfitYoy":null,"deductNetProfit":null,"ocf":null,"roe":null,"grossMargin":null,"discloseDate":null,"source":"WeStock工具返回,东方财富Choice","asOf":"2026-11-18"},{"code":"600755","name":"厦门国贸","swIndustry":null,"chain":null,"link":null,"revenue":196204239219.53,"revenueYoy":null,"netProfit":426304380.19,"netProfitYoy":null,"deductNetProfit":null,"ocf":null,"roe":null,"grossMargin":null,"discloseDate":null,"source":"WeStock工具返回,东方财富Choice","asOf":"2026-11-18"},{"code":"601899","name":"紫金矿业","swIndustry":null,"chain":null,"link":null,"revenue":194178458630,"revenueYoy":null,"netProfit":39169807243,"netProfitYoy":null,"deductNetProfit":null,"ocf":null,"roe":null,"grossMargin":null,"discloseDate":null,"source":"WeStock工具返回,东方财富Choice","asOf":"2026-11-18"},{"code":"601658","name":"邮储银行","swIndustry":null,"chain":null,"link":null,"revenue":192482000000,"revenueYoy":null,"netProfit":51503000000,"netProfitYoy":null,"deductNetProfit":null,"ocf":null,"roe":null,"grossMargin":null,"discloseDate":null,"source":"WeStock工具返回,东方财富Choice","asOf":"2026-11-18"},{"code":"601088","name":"中国神华","swIndustry":null,"chain":null,"link":null,"revenue":189338000000,"revenueYoy":null,"netProfit":28715000000,"netProfitYoy":null,"deductNetProfit":null,"ocf":null,"roe":null,"grossMargin":null,"discloseDate":null,"source":"WeStock工具返回,东方财富Choice","asOf":"2026-11-18"},{"code":"600036","name":"招商银行","swIndustry":null,"chain":null,"link":null,"revenue":178181000000,"revenueYoy":null,"netProfit":76445000000,"netProfitYoy":null,"deductNetProfit":null,"ocf":null,"roe":null,"grossMargin":null,"discloseDate":null,"source":"WeStock工具返回,东方财富Choice","asOf":"2026-11-18"},{"code":"601618","name":"中国中冶","swIndustry":null,"chain":null,"link":null,"revenue":175906562000,"revenueYoy":null,"netProfit":2326127000,"netProfitYoy":null,"deductNetProfit":null,"ocf":null,"roe":null,"grossMargin":null,"discloseDate":null,"source":"WeStock工具返回,东方财富Choice","asOf":"2026-11-18"},{"code":"002475","name":"立讯精密","swIndustry":null,"chain":null,"link":null,"revenue":174504335921.25,"revenueYoy":40.16,"netProfit":7842698288.86,"netProfitYoy":18.04,"deductNetProfit":5961877867.17,"ocf":-2445863006.32,"roe":8.76,"grossMargin":11.78,"discloseDate":null,"source":"WeStock工具返回,NeoData","asOf":"2026-11-18"},{"code":"600019","name":"宝钢股份","swIndustry":null,"chain":null,"link":null,"revenue":160731484167.43,"revenueYoy":null,"netProfit":4571368811.02,"netProfitYoy":null,"deductNetProfit":null,"ocf":null,"roe":null,"grossMargin":null,"discloseDate":null,"source":"WeStock工具返回,东方财富Choice","asOf":"2026-11-18"},{"code":"002352","name":"顺丰控股","swIndustry":null,"chain":null,"link":null,"revenue":155506421000,"revenueYoy":null,"netProfit":5501905000,"netProfitYoy":null,"deductNetProfit":null,"ocf":null,"roe":null,"grossMargin":null,"discloseDate":null,"source":"WeStock工具返回,东方财富Choice","asOf":"2026-11-18"},{"code":"600690","name":"海尔智家","swIndustry":null,"chain":null,"link":null,"revenue":152115050237.63,"revenueYoy":null,"netProfit":10316254946.26,"netProfitYoy":null,"deductNetProfit":null,"ocf":null,"roe":null,"grossMargin":null,"discloseDate":null,"source":"WeStock工具返回,东方财富Choice","asOf":"2026-11-18"},{"code":"688825","name":"长鑫科技","swIndustry":null,"chain":"AI算力","link":"存储","revenue":150310076758,"revenueYoy":873.6417,"netProfit":77605227520,"netProfitYoy":3427.7569,"deductNetProfit":78793025367.21,"ocf":131155666051.14,"roe":81.06,"grossMargin":84.7419,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"601607","name":"上海医药","swIndustry":null,"chain":null,"link":null,"revenue":147469729395.2,"revenueYoy":null,"netProfit":3504447475.63,"netProfitYoy":null,"deductNetProfit":null,"ocf":null,"roe":null,"grossMargin":null,"discloseDate":null,"source":"WeStock工具返回,东方财富Choice","asOf":"2026-11-18"},{"code":"601328","name":"交通银行","swIndustry":null,"chain":null,"link":null,"revenue":142343000000,"revenueYoy":null,"netProfit":47874000000,"netProfitYoy":null,"deductNetProfit":null,"ocf":null,"roe":null,"grossMargin":null,"discloseDate":null,"source":"WeStock工具返回,东方财富Choice","asOf":"2026-11-18"},{"code":"603993","name":"洛阳钼业","swIndustry":null,"chain":null,"link":null,"revenue":135319885598.22,"revenueYoy":42.78,"netProfit":16152187485.37,"netProfitYoy":86.27,"deductNetProfit":null,"ocf":null,"roe":null,"grossMargin":null,"discloseDate":null,"source":"WeStock工具返回,东方财富Choice","asOf":"2026-11-18"},{"code":"601766","name":"中国中车","swIndustry":null,"chain":null,"link":null,"revenue":131682442000,"revenueYoy":null,"netProfit":7990535000,"netProfitYoy":null,"deductNetProfit":null,"ocf":null,"roe":null,"grossMargin":null,"discloseDate":null,"source":"WeStock工具返回,东方财富Choice","asOf":"2026-11-18"},{"code":"002493","name":"荣盛石化","swIndustry":null,"chain":null,"link":null,"revenue":129406713606.78,"revenueYoy":null,"netProfit":5110652552.96,"netProfitYoy":null,"deductNetProfit":null,"ocf":null,"roe":null,"grossMargin":null,"discloseDate":null,"source":"WeStock工具返回,东方财富Choice","asOf":"2026-11-18"},{"code":"000906","name":"浙商中拓","swIndustry":null,"chain":null,"link":null,"revenue":125904025517.47,"revenueYoy":null,"netProfit":252227900.42,"netProfitYoy":null,"deductNetProfit":null,"ocf":null,"roe":null,"grossMargin":null,"discloseDate":null,"source":"WeStock工具返回,东方财富Choice","asOf":"2026-11-18"},{"code":"601600","name":"中国铝业","swIndustry":null,"chain":null,"link":null,"revenue":125413186000,"revenueYoy":null,"netProfit":11871383000,"netProfitYoy":null,"deductNetProfit":null,"ocf":null,"roe":null,"grossMargin":null,"discloseDate":null,"source":"WeStock工具返回,东方财富Choice","asOf":"2026-11-18"},{"code":"000338","name":"潍柴动力","swIndustry":null,"chain":null,"link":null,"revenue":123162965227.85,"revenueYoy":null,"netProfit":7701265423.95,"netProfitYoy":null,"deductNetProfit":null,"ocf":null,"roe":null,"grossMargin":null,"discloseDate":null,"source":"WeStock工具返回,东方财富Choice","asOf":"2026-11-18"},{"code":"300999","name":"金龙鱼","swIndustry":null,"chain":null,"link":null,"revenue":122851600000,"revenueYoy":null,"netProfit":2294374000,"netProfitYoy":null,"deductNetProfit":null,"ocf":null,"roe":null,"grossMargin":null,"discloseDate":null,"source":"WeStock工具返回,东方财富Choice","asOf":"2026-11-18"},{"code":"000630","name":"铜陵有色","swIndustry":null,"chain":null,"link":null,"revenue":121715412845.33,"revenueYoy":null,"netProfit":2992592611.05,"netProfitYoy":null,"deductNetProfit":null,"ocf":null,"roe":null,"grossMargin":null,"discloseDate":null,"source":"WeStock工具返回,东方财富Choice","asOf":"2026-11-18"},{"code":"600309","name":"万华化学","swIndustry":null,"chain":null,"link":null,"revenue":119315863794.85,"revenueYoy":null,"netProfit":10062963544.81,"netProfitYoy":null,"deductNetProfit":null,"ocf":null,"roe":null,"grossMargin":null,"discloseDate":null,"source":"WeStock工具返回,东方财富Choice","asOf":"2026-11-18"},{"code":"601919","name":"中远海控","swIndustry":null,"chain":null,"link":null,"revenue":111921747568.76,"revenueYoy":null,"netProfit":13418920777.4,"netProfitYoy":null,"deductNetProfit":null,"ocf":null,"roe":null,"grossMargin":null,"discloseDate":null,"source":"WeStock工具返回,东方财富Choice","asOf":"2026-11-18"},{"code":"000878","name":"云南铜业","swIndustry":null,"chain":null,"link":null,"revenue":111549107697,"revenueYoy":null,"netProfit":1897144601.89,"netProfitYoy":null,"deductNetProfit":null,"ocf":null,"roe":null,"grossMargin":null,"discloseDate":null,"source":"WeStock工具返回,东方财富Choice","asOf":"2026-11-18"},{"code":"601166","name":"兴业银行","swIndustry":null,"chain":null,"link":null,"revenue":110177000000,"revenueYoy":null,"netProfit":41131000000,"netProfitYoy":null,"deductNetProfit":null,"ocf":null,"roe":null,"grossMargin":null,"discloseDate":null,"source":"WeStock工具返回,东方财富Choice","asOf":"2026-11-18"},{"code":"601998","name":"中信银行","swIndustry":null,"chain":null,"link":null,"revenue":109408000000,"revenueYoy":null,"netProfit":37602000000,"netProfitYoy":null,"deductNetProfit":null,"ocf":null,"roe":null,"grossMargin":null,"discloseDate":null,"source":"WeStock工具返回,东方财富Choice","asOf":"2026-11-18"},{"code":"600011","name":"华能国际","swIndustry":null,"chain":null,"link":null,"revenue":106909025871,"revenueYoy":null,"netProfit":6585729326,"netProfitYoy":null,"deductNetProfit":null,"ocf":null,"roe":null,"grossMargin":null,"discloseDate":null,"source":"WeStock工具返回,东方财富Choice","asOf":"2026-11-18"},{"code":"600519","name":"贵州茅台","swIndustry":null,"chain":null,"link":null,"revenue":92278072083.21,"revenueYoy":1.3001,"netProfit":44516880421.86,"netProfitYoy":-1.9516,"deductNetProfit":44464207646.01,"ocf":70690750119.06,"roe":16.75,"grossMargin":89.5552,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"600000","name":"浦发银行","swIndustry":null,"chain":null,"link":null,"revenue":93777000000,"revenueYoy":null,"netProfit":30951000000,"netProfitYoy":null,"deductNetProfit":null,"ocf":null,"roe":null,"grossMargin":null,"discloseDate":null,"source":"WeStock工具返回,东方财富Choice","asOf":"2026-11-18"},{"code":"000001","name":"平安银行","swIndustry":null,"chain":null,"link":null,"revenue":70617000000,"revenueYoy":null,"netProfit":25696000000,"netProfitYoy":null,"deductNetProfit":null,"ocf":null,"roe":null,"grossMargin":null,"discloseDate":null,"source":"WeStock工具返回,东方财富Choice","asOf":"2026-11-18"},{"code":"600030","name":"中信证券","swIndustry":null,"chain":null,"link":null,"revenue":49691932907.1,"revenueYoy":null,"netProfit":23343231403.68,"netProfitYoy":null,"deductNetProfit":null,"ocf":null,"roe":null,"grossMargin":null,"discloseDate":null,"source":"WeStock工具返回,东方财富Choice","asOf":"2026-11-18"},{"code":"601336","name":"新华保险","swIndustry":null,"chain":null,"link":null,"revenue":83258000000,"revenueYoy":null,"netProfit":22793000000,"netProfitYoy":null,"deductNetProfit":null,"ocf":null,"roe":null,"grossMargin":null,"discloseDate":null,"source":"WeStock工具返回,东方财富Choice","asOf":"2026-11-18"},{"code":"300308","name":"中际旭创","swIndustry":null,"chain":"AI算力","link":"光模块","revenue":41777861795.03,"revenueYoy":182.4914,"netProfit":13651149693.27,"netProfitYoy":241.696,"deductNetProfit":13091597476.79,"ocf":1799674832.02,"roe":37.62,"grossMargin":46.2522,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"301308","name":"江波龙","swIndustry":null,"chain":"AI算力","link":"存储","revenue":24088363284.95,"revenueYoy":136.26,"netProfit":10576875808.95,"netProfitYoy":71528.66,"deductNetProfit":10047374676.56,"ocf":-3151429914.77,"roe":79.03,"grossMargin":58.9,"discloseDate":null,"source":"WeStock工具返回,NeoData","asOf":"2026-11-18"},{"code":"688525","name":"佰维存储","swIndustry":null,"chain":"AI算力","link":"存储","revenue":15574943371.35,"revenueYoy":298.1,"netProfit":7165580281.51,"netProfitYoy":3273.48,"deductNetProfit":6632544841,"ocf":-6261171962.18,"roe":78.69,"grossMargin":54.81,"discloseDate":null,"source":"WeStock工具返回,NeoData","asOf":"2026-11-18"},{"code":"600999","name":"招商证券","swIndustry":null,"chain":null,"link":null,"revenue":21901578682.9,"revenueYoy":108.1874,"netProfit":10624328413.44,"netProfitYoy":104.8697,"deductNetProfit":10626293415.35,"ocf":null,"roe":8.22,"grossMargin":null,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"002379","name":"宏桥控股","swIndustry":null,"chain":null,"link":null,"revenue":86503979245.58,"revenueYoy":11.9504,"netProfit":15645254370.52,"netProfitYoy":77.0241,"deductNetProfit":15534968276.69,"ocf":null,"roe":30.26,"grossMargin":25.3785,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"002460","name":"赣锋锂业","swIndustry":null,"chain":"新能源汽车","link":"上游材料","revenue":23096945425.05,"revenueYoy":175.75,"netProfit":4257164842.1,"netProfitYoy":901.36,"deductNetProfit":null,"ocf":null,"roe":null,"grossMargin":null,"discloseDate":null,"source":"WeStock工具返回,NeoData","asOf":"2026-11-18"}],"chain":[{"chain":"AI算力","link":"存储","companyCount":7,"revenueSum":226507000000,"revenueYoy":null,"netProfitSum":111553000000,"netProfitYoy":null,"roeAvg":61.29,"grossMarginAvg":58.43,"profitRank":1,"leadCompanies":"长鑫科技,江波龙,佰维存储,兆易创新,大普微,澜起科技,德明利","source":"样本聚合计算值：WeStock工具返回/NeoData","asOf":"2026-11-18"},{"chain":"AI算力","link":"光模块","companyCount":4,"revenueSum":66441000000,"revenueYoy":null,"netProfitSum":22991000000,"netProfitYoy":null,"roeAvg":36.24,"grossMarginAvg":51.85,"profitRank":3,"leadCompanies":"中际旭创,新易盛,天孚通信,源杰科技","source":"样本聚合计算值：WeStock工具返回/NeoData","asOf":"2026-11-18"},{"chain":"AI算力","link":"AI芯片","companyCount":3,"revenueSum":16831000000,"revenueYoy":null,"netProfitSum":4097440000,"netProfitYoy":null,"roeAvg":12.8,"grossMarginAvg":55.8,"profitRank":6,"leadCompanies":"海光信息,寒武纪,摩尔线程","source":"样本聚合计算值：WeStock工具返回/NeoData","asOf":"2026-11-18"},{"chain":"AI算力","link":"服务器整机","companyCount":4,"revenueSum":718279000000,"revenueYoy":null,"netProfitSum":30697000000,"netProfitYoy":null,"roeAvg":18.43,"grossMarginAvg":13.62,"profitRank":2,"leadCompanies":"工业富联,浪潮信息,协创数据,紫光股份","source":"样本聚合计算值：WeStock工具返回/NeoData","asOf":"2026-11-18"},{"chain":"AI算力","link":"PCB封测","companyCount":3,"revenueSum":42966000000,"revenueYoy":null,"netProfitSum":6825000000,"netProfitYoy":null,"roeAvg":11.59,"grossMarginAvg":26.56,"profitRank":4,"leadCompanies":"通富微电,胜宏科技,深南电路","source":"样本聚合计算值：WeStock工具返回/NeoData","asOf":"2026-11-18"},{"chain":"AI算力","link":"晶圆制造","companyCount":1,"revenueSum":38635000000,"revenueYoy":null,"netProfitSum":4467000000,"netProfitYoy":null,"roeAvg":2.9,"grossMarginAvg":23.16,"profitRank":5,"leadCompanies":"中芯国际","source":"样本聚合计算值：WeStock工具返回/NeoData","asOf":"2026-11-18"},{"chain":"新能源汽车","link":"动力电池电芯","companyCount":5,"revenueSum":733378000000,"revenueYoy":null,"netProfitSum":60899000000,"netProfitYoy":null,"roeAvg":6.26,"grossMarginAvg":17.6,"profitRank":1,"leadCompanies":"比亚迪,宁德时代,亿纬锂能,欣旺达,国轩高科","source":"样本聚合计算值：WeStock工具返回/NeoData","asOf":"2026-11-18"},{"chain":"新能源汽车","link":"上游材料","companyCount":6,"revenueSum":120882000000,"revenueYoy":null,"netProfitSum":13006000000,"netProfitYoy":null,"roeAvg":null,"grossMarginAvg":9.4,"profitRank":2,"leadCompanies":"华友钴业,赣锋锂业,天赐材料,璞泰来,容百科技,恩捷股份","source":"样本聚合计算值：WeStock工具返回/NeoData","asOf":"2026-11-18"},{"chain":"光伏","link":"硅料硅片","companyCount":3,"revenueSum":49295000000,"revenueYoy":null,"netProfitSum":-9918000000,"netProfitYoy":null,"roeAvg":-19.03,"grossMarginAvg":-29.04,"profitRank":3,"leadCompanies":"通威股份,TCL中环,大全能源","source":"样本聚合计算值：WeStock工具返回/NeoData","asOf":"2026-11-18"},{"chain":"光伏","link":"电池组件","companyCount":4,"revenueSum":101255000000,"revenueYoy":null,"netProfitSum":-9693000000,"netProfitYoy":null,"roeAvg":null,"grossMarginAvg":3.41,"profitRank":2,"leadCompanies":"天合光能,隆基绿能,晶科能源,晶澳科技","source":"样本聚合计算值：WeStock工具返回/NeoData","asOf":"2026-11-18"},{"chain":"光伏","link":"逆变器辅材设备","companyCount":5,"revenueSum":50747000000,"revenueYoy":null,"netProfitSum":6345000000,"netProfitYoy":null,"roeAvg":null,"grossMarginAvg":null,"profitRank":1,"leadCompanies":"阳光电源,福斯特,福莱特,晶盛机电,捷佳伟创","source":"样本聚合计算值：WeStock工具返回/NeoData","asOf":"2026-11-18"}],"growth":[{"code":"301308","name":"江波龙","chain":"AI算力","link":"存储","swIndustry":null,"revenue":24088000000,"revenueYoy":136.26,"netProfit":10577000000,"netProfitYoy":71528.66,"roe":79.03,"growthScore":71664.92,"discloseDate":null,"source":"Wind,WeStock工具返回,东方财富Choice,公司半年报","asOf":"2026-11-18"},{"code":"688525","name":"佰维存储","chain":"AI算力","link":"存储","swIndustry":null,"revenue":15575000000,"revenueYoy":298.1,"netProfit":7166000000,"netProfitYoy":3273.48,"roe":78.69,"growthScore":3571.58,"discloseDate":null,"source":"Wind,WeStock工具返回,东方财富Choice,公司半年报（扭亏口径）","asOf":"2026-11-18"},{"code":"603986","name":"兆易创新","chain":"AI算力","link":"存储","swIndustry":null,"revenue":11566000000,"revenueYoy":178.67,"netProfit":6857000000,"netProfitYoy":1091.5,"roe":23.13,"growthScore":1270.17,"discloseDate":null,"source":"Wind,WeStock工具返回,东方财富Choice,公司半年报","asOf":"2026-11-18"},{"code":"688766","name":"普冉股份","chain":null,"link":null,"swIndustry":null,"revenue":3959000000,"revenueYoy":336.67,"netProfit":827000000,"netProfitYoy":1929.65,"roe":null,"growthScore":2266.32,"discloseDate":null,"source":"Wind,WeStock工具返回,东方财富Choice,公司半年报","asOf":"2026-11-18"},{"code":"688825","name":"长鑫科技","chain":"AI算力","link":"存储","swIndustry":null,"revenue":150310000000,"revenueYoy":873.64,"netProfit":77605000000,"netProfitYoy":3427.76,"roe":81.06,"growthScore":4301.4,"discloseDate":null,"source":"Wind,WeStock工具返回,东方财富Choice,公司半年报（扭亏口径）","asOf":"2026-11-18"},{"code":"001309","name":"德明利","chain":"AI算力","link":"存储","swIndustry":null,"revenue":16911000000,"revenueYoy":311.55,"netProfit":6017000000,"netProfitYoy":5201.6,"roe":95.11,"growthScore":5513.15,"discloseDate":null,"source":"Wind,WeStock工具返回,东方财富Choice,公司半年报","asOf":"2026-11-18"},{"code":"300475","name":"香农芯创","chain":null,"link":null,"swIndustry":null,"revenue":60204000000,"revenueYoy":251.6,"netProfit":3642000000,"netProfitYoy":2207.2,"roe":68.13,"growthScore":2458.8,"discloseDate":null,"source":"Wind,WeStock工具返回,东方财富Choice,公司半年报","asOf":"2026-11-18"},{"code":"688256","name":"寒武纪","chain":"AI算力","link":"AI芯片","swIndustry":null,"revenue":5996000000,"revenueYoy":108.13,"netProfit":2311000000,"netProfitYoy":122.61,"roe":18.05,"growthScore":230.74,"discloseDate":null,"source":"Wind,WeStock工具返回,东方财富Choice,公司半年报","asOf":"2026-11-18"},{"code":"300308","name":"中际旭创","chain":"AI算力","link":"光模块","swIndustry":null,"revenue":41778000000,"revenueYoy":182.49,"netProfit":13651000000,"netProfitYoy":241.7,"roe":37.62,"growthScore":424.19,"discloseDate":null,"source":"Wind,WeStock工具返回,东方财富Choice,公司半年报","asOf":"2026-11-18"},{"code":"601138","name":"工业富联","chain":"AI算力","link":"服务器整机","swIndustry":null,"revenue":557861000000,"revenueYoy":54.63,"netProfit":23740000000,"netProfitYoy":95.99,"roe":13.36,"growthScore":150.62,"discloseDate":null,"source":"Wind,WeStock工具返回,东方财富Choice,公司半年报","asOf":"2026-11-18"},{"code":"600183","name":"生益科技","chain":null,"link":null,"swIndustry":null,"revenue":19026000000,"revenueYoy":50.05,"netProfit":3287000000,"netProfitYoy":130.42,"roe":18.17,"growthScore":180.47,"discloseDate":null,"source":"Wind,WeStock工具返回,东方财富Choice,公司半年报","asOf":"2026-11-18"},{"code":"688449","name":"联芸科技","chain":null,"link":null,"swIndustry":null,"revenue":854000000,"revenueYoy":40.08,"netProfit":520000000,"netProfitYoy":825.54,"roe":null,"growthScore":865.62,"discloseDate":null,"source":"Wind,WeStock工具返回,东方财富Choice,公司半年报","asOf":"2026-11-18"},{"code":"300750","name":"宁德时代","chain":"新能源汽车","link":"动力电池电芯","swIndustry":null,"revenue":276917000000,"revenueYoy":54.8,"netProfit":43284000000,"netProfitYoy":41.98,"roe":12.08,"growthScore":96.78,"discloseDate":null,"source":"Wind,WeStock工具返回,东方财富Choice,公司半年报","asOf":"2026-11-18"},{"code":"301358","name":"湖南裕能","chain":null,"link":null,"swIndustry":null,"revenue":34877000000,"revenueYoy":142.92,"netProfit":2910000000,"netProfitYoy":853.51,"roe":null,"growthScore":996.43,"discloseDate":null,"source":"Wind,WeStock工具返回,东方财富Choice,公司半年报","asOf":"2026-11-18"},{"code":"002709","name":"天赐材料","chain":"新能源汽车","link":"上游材料","swIndustry":null,"revenue":14710000000,"revenueYoy":109.28,"netProfit":2861000000,"netProfitYoy":967.91,"roe":null,"growthScore":1077.19,"discloseDate":null,"source":"Wind,WeStock工具返回,东方财富Choice,公司半年报","asOf":"2026-11-18"},{"code":"002466","name":"天齐锂业","chain":null,"link":null,"swIndustry":null,"revenue":12242000000,"revenueYoy":153.32,"netProfit":4242000000,"netProfitYoy":4925.46,"roe":null,"growthScore":5078.78,"discloseDate":null,"source":"Wind,WeStock工具返回,东方财富Choice,公司半年报","asOf":"2026-11-18"},{"code":"300390","name":"天华新能","chain":null,"link":null,"swIndustry":null,"revenue":7780000000,"revenueYoy":125,"netProfit":2292000000,"netProfitYoy":2622.89,"roe":18.34,"growthScore":2747.89,"discloseDate":null,"source":"Wind,WeStock工具返回,东方财富Choice,公司半年报","asOf":"2026-11-18"},{"code":"002738","name":"中矿资源","chain":null,"link":null,"swIndustry":null,"revenue":3660000000,"revenueYoy":12.03,"netProfit":1111000000,"netProfitYoy":1146.81,"roe":null,"growthScore":1158.84,"discloseDate":null,"source":"Wind,WeStock工具返回,东方财富Choice,公司半年报","asOf":"2026-11-18"},{"code":"002407","name":"多氟多","chain":null,"link":null,"swIndustry":null,"revenue":7036000000,"revenueYoy":62.55,"netProfit":512000000,"netProfitYoy":897.19,"roe":null,"growthScore":959.74,"discloseDate":null,"source":"Wind,WeStock工具返回,东方财富Choice,公司半年报","asOf":"2026-11-18"},{"code":"600362","name":"江西铜业","chain":null,"link":null,"swIndustry":null,"revenue":307155000000,"revenueYoy":19.53,"netProfit":8632000000,"netProfitYoy":106.77,"roe":null,"growthScore":126.3,"discloseDate":null,"source":"Wind,WeStock工具返回,东方财富Choice,公司半年报","asOf":"2026-11-18"},{"code":"603993","name":"洛阳钼业","chain":null,"link":null,"swIndustry":null,"revenue":135320000000,"revenueYoy":42.78,"netProfit":16152000000,"netProfitYoy":86.27,"roe":null,"growthScore":129.05,"discloseDate":null,"source":"Wind,WeStock工具返回,东方财富Choice,公司半年报","asOf":"2026-11-18"},{"code":"000792","name":"盐湖股份","chain":null,"link":null,"swIndustry":null,"revenue":13052000000,"revenueYoy":79.88,"netProfit":6169000000,"netProfitYoy":137.88,"roe":null,"growthScore":217.76,"discloseDate":null,"source":"Wind,WeStock工具返回,东方财富Choice,公司半年报","asOf":"2026-11-18"},{"code":"000657","name":"中钨高新","chain":null,"link":null,"swIndustry":null,"revenue":16385000000,"revenueYoy":108.51,"netProfit":2076000000,"netProfitYoy":280.53,"roe":null,"growthScore":389.04,"discloseDate":null,"source":"Wind,WeStock工具返回,东方财富Choice,公司半年报","asOf":"2026-11-18"},{"code":"002378","name":"章源钨业","chain":null,"link":null,"swIndustry":null,"revenue":5847000000,"revenueYoy":143.71,"netProfit":688000000,"netProfitYoy":497.38,"roe":null,"growthScore":641.09,"discloseDate":null,"source":"Wind,WeStock工具返回,东方财富Choice,公司半年报","asOf":"2026-11-18"},{"code":"601069","name":"西部黄金","chain":null,"link":null,"swIndustry":null,"revenue":11043000000,"revenueYoy":119.62,"netProfit":547000000,"netProfitYoy":315.67,"roe":null,"growthScore":435.29,"discloseDate":null,"source":"Wind,WeStock工具返回,东方财富Choice,公司半年报","asOf":"2026-11-18"},{"code":"000960","name":"锡业股份","chain":null,"link":null,"swIndustry":null,"revenue":31573000000,"revenueYoy":49.68,"netProfit":1504000000,"netProfitYoy":41.6,"roe":null,"growthScore":91.28,"discloseDate":null,"source":"Wind,WeStock工具返回,东方财富Choice,公司半年报","asOf":"2026-11-18"},{"code":"000603","name":"盛达资源","chain":null,"link":null,"swIndustry":null,"revenue":1152000000,"revenueYoy":27.08,"netProfit":390000000,"netProfitYoy":456.46,"roe":null,"growthScore":483.54,"discloseDate":null,"source":"Wind,WeStock工具返回,东方财富Choice,公司半年报","asOf":"2026-11-18"},{"code":"002648","name":"卫星化学","chain":null,"link":null,"swIndustry":null,"revenue":30713000000,"revenueYoy":30.92,"netProfit":6227000000,"netProfitYoy":126.94,"roe":null,"growthScore":157.86,"discloseDate":null,"source":"Wind,WeStock工具返回,东方财富Choice,公司半年报","asOf":"2026-11-18"},{"code":"601233","name":"桐昆股份","chain":null,"link":null,"swIndustry":null,"revenue":52709000000,"revenueYoy":19.36,"netProfit":4222000000,"netProfitYoy":285.03,"roe":null,"growthScore":304.39,"discloseDate":null,"source":"Wind,WeStock工具返回,东方财富Choice,公司半年报","asOf":"2026-11-18"},{"code":"000703","name":"恒逸石化","chain":null,"link":null,"swIndustry":null,"revenue":67309000000,"revenueYoy":20.28,"netProfit":5902000000,"netProfitYoy":2500.73,"roe":null,"growthScore":2521.01,"discloseDate":null,"source":"Wind,WeStock工具返回,东方财富Choice,公司半年报","asOf":"2026-11-18"},{"code":"600143","name":"金发科技","chain":null,"link":null,"swIndustry":null,"revenue":34118000000,"revenueYoy":7.85,"netProfit":685000000,"netProfitYoy":17.02,"roe":null,"growthScore":24.87,"discloseDate":null,"source":"Wind,WeStock工具返回,东方财富Choice,公司半年报","asOf":"2026-11-18"},{"code":"002274","name":"华昌化工","chain":null,"link":null,"swIndustry":null,"revenue":4016000000,"revenueYoy":24.85,"netProfit":123000000,"netProfitYoy":1026.9,"roe":null,"growthScore":1051.75,"discloseDate":null,"source":"Wind,WeStock工具返回,东方财富Choice,公司半年报","asOf":"2026-11-18"},{"code":"688235","name":"百济神州","chain":null,"link":null,"swIndustry":null,"revenue":22220000000,"revenueYoy":26.84,"netProfit":3271000000,"netProfitYoy":627.15,"roe":null,"growthScore":653.99,"discloseDate":null,"source":"Wind,WeStock工具返回,东方财富Choice,公司半年报","asOf":"2026-11-18"},{"code":"603259","name":"药明康德","chain":null,"link":null,"swIndustry":null,"revenue":28897000000,"revenueYoy":38.93,"netProfit":11080000000,"netProfitYoy":29.43,"roe":null,"growthScore":68.36,"discloseDate":null,"source":"Wind,WeStock工具返回,东方财富Choice,公司半年报","asOf":"2026-11-18"},{"code":"688331","name":"荣昌生物","chain":null,"link":null,"swIndustry":null,"revenue":5853000000,"revenueYoy":433.11,"netProfit":4662000000,"netProfitYoy":1137.06,"roe":null,"growthScore":1570.17,"discloseDate":null,"source":"Wind,WeStock工具返回,东方财富Choice,公司半年报","asOf":"2026-11-18"},{"code":"603997","name":"继峰股份","chain":null,"link":null,"swIndustry":null,"revenue":13078000000,"revenueYoy":24.28,"netProfit":365000000,"netProfitYoy":137.26,"roe":null,"growthScore":161.54,"discloseDate":null,"source":"Wind,WeStock工具返回,东方财富Choice,公司半年报","asOf":"2026-11-18"},{"code":"688308","name":"欧科亿","chain":null,"link":null,"swIndustry":null,"revenue":1206729911.37,"revenueYoy":99.96,"netProfit":370884709.02,"netProfitYoy":47734.24,"roe":null,"growthScore":47834.2,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"300765","name":"石药创新","chain":null,"link":null,"swIndustry":null,"revenue":3240242226.11,"revenueYoy":208.72,"netProfit":1261185991.32,"netProfitYoy":46025.71,"roe":null,"growthScore":46234.43,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"300927","name":"江天化学","chain":null,"link":null,"swIndustry":null,"revenue":961690396.53,"revenueYoy":27.76,"netProfit":59411953.72,"netProfitYoy":22955.37,"roe":null,"growthScore":22983.13,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"002389","name":"航天彩虹","chain":null,"link":null,"swIndustry":null,"revenue":890833327.53,"revenueYoy":9.87,"netProfit":75369830.49,"netProfitYoy":15492.93,"roe":null,"growthScore":15502.8,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"600345","name":"长江通信","chain":null,"link":null,"swIndustry":null,"revenue":292015451.36,"revenueYoy":0.67,"netProfit":446404544.03,"netProfitYoy":8833.11,"roe":null,"growthScore":8833.78,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"002289","name":"宇顺电子","chain":null,"link":null,"swIndustry":null,"revenue":547123597.77,"revenueYoy":306.79,"netProfit":280426240.27,"netProfitYoy":6380.84,"roe":null,"growthScore":6687.63,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"301002","name":"崧盛股份","chain":null,"link":null,"swIndustry":null,"revenue":587162516.82,"revenueYoy":30.65,"netProfit":37819984.43,"netProfitYoy":5121.12,"roe":null,"growthScore":5151.77,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"002458","name":"益生股份","chain":null,"link":null,"swIndustry":null,"revenue":1696762876.75,"revenueYoy":28.44,"netProfit":307586693.93,"netProfitYoy":4897.29,"roe":null,"growthScore":4925.73,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"300082","name":"奥克股份","chain":null,"link":null,"swIndustry":null,"revenue":2295317560.54,"revenueYoy":12.41,"netProfit":61539703.84,"netProfitYoy":4621.13,"roe":null,"growthScore":4633.54,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"002582","name":"好想你","chain":null,"link":null,"swIndustry":null,"revenue":706594342.33,"revenueYoy":2.59,"netProfit":744321822.22,"netProfitYoy":3851.85,"roe":null,"growthScore":3854.44,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"688090","name":"瑞松科技","chain":null,"link":null,"swIndustry":null,"revenue":625415683.54,"revenueYoy":71.67,"netProfit":41844076.69,"netProfitYoy":3349.46,"roe":null,"growthScore":3421.13,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"600288","name":"大恒科技","chain":null,"link":null,"swIndustry":null,"revenue":844120589.82,"revenueYoy":0.03,"netProfit":78488984.94,"netProfitYoy":2964.02,"roe":null,"growthScore":2964.05,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"688600","name":"皖仪科技","chain":null,"link":null,"swIndustry":null,"revenue":390360997.09,"revenueYoy":26.78,"netProfit":31025445.26,"netProfitYoy":2863.13,"roe":null,"growthScore":2889.91,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"301246","name":"宏源药业","chain":null,"link":null,"swIndustry":null,"revenue":1341942986.85,"revenueYoy":52.05,"netProfit":156238212.74,"netProfitYoy":2788.93,"roe":null,"growthScore":2840.98,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"002151","name":"北斗星通","chain":null,"link":null,"swIndustry":null,"revenue":1235380706.91,"revenueYoy":38.48,"netProfit":40898387.52,"netProfitYoy":2784.18,"roe":null,"growthScore":2822.66,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"300981","name":"中红医疗","chain":null,"link":null,"swIndustry":null,"revenue":1478364167.05,"revenueYoy":19.46,"netProfit":158641517.03,"netProfitYoy":2662.38,"roe":null,"growthScore":2681.84,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"300497","name":"富祥股份","chain":null,"link":null,"swIndustry":null,"revenue":888252249.7,"revenueYoy":72.59,"netProfit":176943420.63,"netProfitYoy":2660.26,"roe":null,"growthScore":2732.85,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"002842","name":"翔鹭钨业","chain":null,"link":null,"swIndustry":null,"revenue":2633272274.03,"revenueYoy":182.85,"netProfit":482090971,"netProfitYoy":2522.4,"roe":null,"growthScore":2705.25,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"300283","name":"温州宏丰","chain":null,"link":null,"swIndustry":null,"revenue":2986232002.24,"revenueYoy":92.2,"netProfit":92346186.36,"netProfitYoy":2521.9,"roe":null,"growthScore":2614.1,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"000520","name":"凤凰航运","chain":null,"link":null,"swIndustry":null,"revenue":672590221.07,"revenueYoy":95.7,"netProfit":29889930.35,"netProfitYoy":2329.69,"roe":null,"growthScore":2425.39,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"002747","name":"埃斯顿","chain":null,"link":null,"swIndustry":null,"revenue":2577506515.4,"revenueYoy":1.14,"netProfit":161325506.86,"netProfitYoy":2314.23,"roe":null,"growthScore":2315.37,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"600037","name":"歌华有线","chain":null,"link":null,"swIndustry":null,"revenue":1348362375.66,"revenueYoy":44.48,"netProfit":213433040.15,"netProfitYoy":2301.63,"roe":null,"growthScore":2346.11,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"300483","name":"首华燃气","chain":null,"link":null,"swIndustry":null,"revenue":1746687183.81,"revenueYoy":30.52,"netProfit":186740032.23,"netProfitYoy":2131.55,"roe":null,"growthScore":2162.07,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"300013","name":"新宁物流","chain":null,"link":null,"swIndustry":null,"revenue":899578516.35,"revenueYoy":301.9,"netProfit":16602427.37,"netProfitYoy":1942.87,"roe":null,"growthScore":2244.77,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"002297","name":"博云新材","chain":null,"link":null,"swIndustry":null,"revenue":745025137.77,"revenueYoy":88.33,"netProfit":170216370.59,"netProfitYoy":1911.6,"roe":null,"growthScore":1999.93,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"300890","name":"翔丰华","chain":null,"link":null,"swIndustry":null,"revenue":1095471847.19,"revenueYoy":59.32,"netProfit":50910129.4,"netProfitYoy":1828.15,"roe":null,"growthScore":1887.47,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"688390","name":"固德威","chain":null,"link":null,"swIndustry":null,"revenue":6249532561.38,"revenueYoy":52.96,"netProfit":286471807.71,"netProfitYoy":1825.94,"roe":null,"growthScore":1878.9,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"002115","name":"三维通信","chain":null,"link":null,"swIndustry":null,"revenue":12072533881.65,"revenueYoy":173.76,"netProfit":50393505.16,"netProfitYoy":1825.74,"roe":null,"growthScore":1999.5,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"600540","name":"新赛股份","chain":null,"link":null,"swIndustry":null,"revenue":2570847158.51,"revenueYoy":77.15,"netProfit":125109148.69,"netProfitYoy":1819.67,"roe":null,"growthScore":1896.82,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"688383","name":"新益昌","chain":null,"link":null,"swIndustry":null,"revenue":546500443.51,"revenueYoy":36.05,"netProfit":47257714.12,"netProfitYoy":1706.7,"roe":null,"growthScore":1742.75,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"920957","name":"汉维科技","chain":null,"link":null,"swIndustry":null,"revenue":328765074.05,"revenueYoy":10.41,"netProfit":12107412.49,"netProfitYoy":1614.95,"roe":null,"growthScore":1625.36,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"001314","name":"亿道信息","chain":null,"link":null,"swIndustry":null,"revenue":2745742798.16,"revenueYoy":80.68,"netProfit":195721443.26,"netProfitYoy":1614.8,"roe":null,"growthScore":1695.48,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"000973","name":"佛塑科技","chain":null,"link":null,"swIndustry":null,"revenue":3877253411.39,"revenueYoy":259.61,"netProfit":905133771.24,"netProfitYoy":1608.12,"roe":null,"growthScore":1867.73,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"603110","name":"东方材料","chain":null,"link":null,"swIndustry":null,"revenue":197436856.23,"revenueYoy":13.21,"netProfit":10949891.31,"netProfitYoy":1573.21,"roe":null,"growthScore":1586.42,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"603958","name":"哈森股份","chain":null,"link":null,"swIndustry":null,"revenue":789892897.62,"revenueYoy":12.94,"netProfit":25132855.04,"netProfitYoy":1569.43,"roe":null,"growthScore":1582.37,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"301366","name":"一博科技","chain":null,"link":null,"swIndustry":null,"revenue":708792806.39,"revenueYoy":41.63,"netProfit":63829325.44,"netProfitYoy":1561.55,"roe":null,"growthScore":1603.18,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"688779","name":"五矿新能","chain":null,"link":null,"swIndustry":null,"revenue":7812162781.16,"revenueYoy":169,"netProfit":377618935.7,"netProfitYoy":1507.63,"roe":null,"growthScore":1676.63,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"300302","name":"同有科技","chain":null,"link":null,"swIndustry":null,"revenue":260760748.47,"revenueYoy":50.12,"netProfit":257794222.26,"netProfitYoy":1502.54,"roe":null,"growthScore":1552.66,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"000800","name":"一汽解放","chain":null,"link":null,"swIndustry":null,"revenue":37570961164.48,"revenueYoy":33.81,"netProfit":306465407.39,"netProfitYoy":1459.16,"roe":null,"growthScore":1492.97,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"301638","name":"南网数字","chain":null,"link":null,"swIndustry":null,"revenue":2217707747.8,"revenueYoy":42.37,"netProfit":202431219.18,"netProfitYoy":1453.65,"roe":null,"growthScore":1496.02,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"300884","name":"狄耐克","chain":null,"link":null,"swIndustry":null,"revenue":315428514.88,"revenueYoy":10.92,"netProfit":29965041.76,"netProfitYoy":1443.94,"roe":null,"growthScore":1454.86,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"300613","name":"富瀚微","chain":null,"link":null,"swIndustry":null,"revenue":1463157174.3,"revenueYoy":112.66,"netProfit":349770671.07,"netProfitYoy":1419.2,"roe":null,"growthScore":1531.86,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"000990","name":"诚志股份","chain":null,"link":null,"swIndustry":null,"revenue":6146750487.49,"revenueYoy":2.77,"netProfit":289988021.14,"netProfitYoy":1416.23,"roe":null,"growthScore":1419,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"688072","name":"拓荆科技","chain":null,"link":null,"swIndustry":null,"revenue":2912864261.46,"revenueYoy":49.06,"netProfit":1342753980.93,"netProfitYoy":1324.1,"roe":18.11,"growthScore":1373.16,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"300358","name":"楚天科技","chain":null,"link":null,"swIndustry":null,"revenue":2623664632.22,"revenueYoy":8.53,"netProfit":145281876.63,"netProfitYoy":1280.71,"roe":null,"growthScore":1289.24,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"603629","name":"利通电子","chain":null,"link":null,"swIndustry":null,"revenue":2101150261.85,"revenueYoy":38.58,"netProfit":702413938.08,"netProfitYoy":1275.15,"roe":null,"growthScore":1313.73,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"000036","name":"华联控股","chain":null,"link":null,"swIndustry":null,"revenue":341925917.34,"revenueYoy":60.15,"netProfit":27701514.82,"netProfitYoy":1260.83,"roe":null,"growthScore":1320.98,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"001313","name":"粤海饲料","chain":null,"link":null,"swIndustry":null,"revenue":3779289438.95,"revenueYoy":41.66,"netProfit":47786943.63,"netProfitYoy":1240.46,"roe":null,"growthScore":1282.12,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"605189","name":"富春染织","chain":null,"link":null,"swIndustry":null,"revenue":2159477736.77,"revenueYoy":46.93,"netProfit":179787167.94,"netProfitYoy":1238.07,"roe":null,"growthScore":1285,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"603980","name":"吉华集团","chain":null,"link":null,"swIndustry":null,"revenue":796407400.35,"revenueYoy":12.27,"netProfit":46162831.2,"netProfitYoy":1235.47,"roe":null,"growthScore":1247.74,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"920186","name":"中科仪","chain":null,"link":null,"swIndustry":null,"revenue":623158292.71,"revenueYoy":8.52,"netProfit":1838736106.63,"netProfitYoy":1229.96,"roe":null,"growthScore":1238.48,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"688498","name":"源杰科技","chain":"AI算力","link":"光模块","swIndustry":null,"revenue":925150462.56,"revenueYoy":351.4,"netProfit":607072892.98,"netProfitYoy":1212.2,"roe":null,"growthScore":1563.6,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"688682","name":"霍莱沃","chain":null,"link":null,"swIndustry":null,"revenue":118385527.08,"revenueYoy":15.89,"netProfit":4376508.81,"netProfitYoy":1194.5,"roe":null,"growthScore":1210.39,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"002386","name":"天原股份","chain":null,"link":null,"swIndustry":null,"revenue":7464547291.61,"revenueYoy":31.69,"netProfit":209284799.63,"netProfitYoy":1157.84,"roe":null,"growthScore":1189.53,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"603045","name":"福达合金","chain":null,"link":null,"swIndustry":null,"revenue":4399304106.44,"revenueYoy":96.35,"netProfit":309998351.66,"netProfitYoy":1146.56,"roe":null,"growthScore":1242.91,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"603127","name":"昭衍新药","chain":null,"link":null,"swIndustry":null,"revenue":703819032.13,"revenueYoy":5.27,"netProfit":747517433.01,"netProfitYoy":1126.8,"roe":null,"growthScore":1132.07,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"688530","name":"欧莱新材","chain":null,"link":null,"swIndustry":null,"revenue":507586075.19,"revenueYoy":133.43,"netProfit":69433821.01,"netProfitYoy":1097.78,"roe":null,"growthScore":1231.21,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"688255","name":"凯尔达","chain":null,"link":null,"swIndustry":null,"revenue":425358395.86,"revenueYoy":34.73,"netProfit":28269022.78,"netProfitYoy":1095.3,"roe":null,"growthScore":1130.03,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"},{"code":"002192","name":"融捷股份","chain":null,"link":null,"swIndustry":null,"revenue":1524205167.81,"revenueYoy":402.35,"netProfit":1001599511.84,"netProfitYoy":1076.14,"roe":null,"growthScore":1478.49,"discloseDate":null,"source":"WeStock工具返回","asOf":"2026-11-18"}],"compare":[{"code":"688825","name":"长鑫科技","chain":"AI算力","link":"存储","revenue":150310000000,"revenueYoy":873.64,"netProfit":77605000000,"netProfitYoy":null,"roe":81.06,"grossMargin":84.7419,"linkRevenueRank":1,"linkProfitRank":1,"price":36.5,"changePercent":0.86,"mainNetFlow":-139347443,"mainNetFlow5D":-5625651515,"mainNetFlow20D":-8815803638,"quoteDate":"2026-11-18","techIndicators":"{\"macd\":{\"dif\":-2.629,\"dea\":-2.52,\"hist\":-0.218},\"kdj\":{\"k\":13.053,\"d\":23.549,\"j\":-7.94},\"rsi\":{\"6\":27.909,\"12\":33.649,\"24\":38.09},\"ma\":{\"5\":38.396,\"10\":39.743,\"20\":40.964,\"60\":49.449,\"120\":50.334,\"250\":50.334},\"boll\":{\"upper\":45.41,\"mid\":40.964,\"lower\":36.518}}","techSignal":"贴BOLL下轨、KDJ J=-7.94（来源：WeStock工具返回，客观描述）","source":"WeStock工具返回（财务2026-06-30；行情/资金/技术2026-11-18）","asOf":"2026-11-18"},{"code":"301308","name":"江波龙","chain":"AI算力","link":"存储","revenue":24088000000,"revenueYoy":136.26,"netProfit":10577000000,"netProfitYoy":71528.66,"roe":79.03,"grossMargin":58.9,"linkRevenueRank":2,"linkProfitRank":2,"price":null,"changePercent":null,"mainNetFlow":null,"mainNetFlow5D":null,"mainNetFlow20D":null,"quoteDate":null,"techIndicators":null,"techSignal":null,"source":"WeStock工具返回,NeoData","asOf":"2026-11-18"},{"code":"688525","name":"佰维存储","chain":"AI算力","link":"存储","revenue":15575000000,"revenueYoy":298.1,"netProfit":7166000000,"netProfitYoy":null,"roe":78.69,"grossMargin":54.81,"linkRevenueRank":4,"linkProfitRank":3,"price":null,"changePercent":null,"mainNetFlow":null,"mainNetFlow5D":null,"mainNetFlow20D":null,"quoteDate":null,"techIndicators":null,"techSignal":null,"source":"WeStock工具返回,NeoData","asOf":"2026-11-18"},{"code":"603986","name":"兆易创新","chain":"AI算力","link":"存储","revenue":11566000000,"revenueYoy":178.67,"netProfit":6857000000,"netProfitYoy":1091.5,"roe":23.13,"grossMargin":63.13,"linkRevenueRank":5,"linkProfitRank":4,"price":null,"changePercent":null,"mainNetFlow":null,"mainNetFlow5D":null,"mainNetFlow20D":null,"quoteDate":null,"techIndicators":null,"techSignal":null,"source":"WeStock工具返回,NeoData","asOf":"2026-11-18"},{"code":"301666","name":"大普微","chain":"AI算力","link":"存储","revenue":4722000000,"revenueYoy":531.17,"netProfit":1334000000,"netProfitYoy":null,"roe":null,"grossMargin":34.9,"linkRevenueRank":6,"linkProfitRank":7,"price":null,"changePercent":null,"mainNetFlow":null,"mainNetFlow5D":null,"mainNetFlow20D":null,"quoteDate":null,"techIndicators":null,"techSignal":null,"source":"WeStock工具返回,NeoData","asOf":"2026-11-18"},{"code":"688008","name":"澜起科技","chain":"AI算力","link":"存储","revenue":3335000000,"revenueYoy":26.66,"netProfit":1997000000,"netProfitYoy":72.33,"roe":10.72,"grossMargin":65.31,"linkRevenueRank":7,"linkProfitRank":6,"price":null,"changePercent":null,"mainNetFlow":null,"mainNetFlow5D":null,"mainNetFlow20D":null,"quoteDate":null,"techIndicators":null,"techSignal":null,"source":"WeStock工具返回,NeoData","asOf":"2026-11-18"},{"code":"001309","name":"德明利","chain":"AI算力","link":"存储","revenue":16911000000,"revenueYoy":311.55,"netProfit":6017000000,"netProfitYoy":5201.6,"roe":95.11,"grossMargin":47.12,"linkRevenueRank":3,"linkProfitRank":5,"price":null,"changePercent":null,"mainNetFlow":null,"mainNetFlow5D":null,"mainNetFlow20D":null,"quoteDate":null,"techIndicators":null,"techSignal":null,"source":"WeStock工具返回,NeoData","asOf":"2026-11-18"},{"code":"300308","name":"中际旭创","chain":"AI算力","link":"光模块","revenue":41778000000,"revenueYoy":182.49,"netProfit":13651000000,"netProfitYoy":241.7,"roe":37.62,"grossMargin":46.2522,"linkRevenueRank":1,"linkProfitRank":1,"price":389.11,"changePercent":-0.99,"mainNetFlow":21527405,"mainNetFlow5D":-5396922883,"mainNetFlow20D":-5841384585,"quoteDate":"2026-11-18","techIndicators":"{\"macd\":{\"dif\":-80.378,\"dea\":-77.685,\"hist\":-5.385},\"kdj\":{\"k\":13.604,\"d\":21.982,\"j\":-3.151},\"rsi\":{\"6\":26.421,\"12\":29.516,\"24\":32.411},\"ma\":{\"5\":433.236,\"10\":457.254,\"20\":514.086,\"60\":725.801,\"120\":916.998,\"250\":775.014},\"boll\":{\"upper\":658.813,\"mid\":514.086,\"lower\":369.358}}","techSignal":"跌破BOLL中轨、MACD DIF=-80.38、KDJ J=-3.15（来源：WeStock工具返回，客观描述）","source":"WeStock工具返回（财务2026-06-30；行情/资金/技术2026-11-18）","asOf":"2026-11-18"},{"code":"300502","name":"新易盛","chain":"AI算力","link":"光模块","revenue":20910000000,"revenueYoy":100.34,"netProfit":7529000000,"netProfitYoy":90.98,"roe":34.86,"grossMargin":48.44,"linkRevenueRank":2,"linkProfitRank":2,"price":null,"changePercent":null,"mainNetFlow":null,"mainNetFlow5D":null,"mainNetFlow20D":null,"quoteDate":null,"techIndicators":null,"techSignal":null,"source":"WeStock工具返回,NeoData","asOf":"2026-11-18"},{"code":"300394","name":"天孚通信","chain":"AI算力","link":"光模块","revenue":2828000000,"revenueYoy":15.15,"netProfit":1204000000,"netProfitYoy":33.92,"roe":null,"grossMargin":60.87,"linkRevenueRank":3,"linkProfitRank":3,"price":null,"changePercent":null,"mainNetFlow":null,"mainNetFlow5D":null,"mainNetFlow20D":null,"quoteDate":null,"techIndicators":null,"techSignal":null,"source":"WeStock工具返回,NeoData","asOf":"2026-11-18"},{"code":"688498","name":"源杰科技","chain":"AI算力","link":"光模块","revenue":925000000,"revenueYoy":351.4,"netProfit":607000000,"netProfitYoy":1212.2,"roe":null,"grossMargin":null,"linkRevenueRank":4,"linkProfitRank":4,"price":null,"changePercent":null,"mainNetFlow":null,"mainNetFlow5D":null,"mainNetFlow20D":null,"quoteDate":null,"techIndicators":null,"techSignal":null,"source":"WeStock工具返回,NeoData","asOf":"2026-11-18"},{"code":"688041","name":"海光信息","chain":"AI算力","link":"AI芯片","revenue":9099000000,"revenueYoy":66.52,"netProfit":1798000000,"netProfitYoy":49.69,"roe":7.56,"grossMargin":55.21,"linkRevenueRank":1,"linkProfitRank":2,"price":null,"changePercent":null,"mainNetFlow":null,"mainNetFlow5D":null,"mainNetFlow20D":null,"quoteDate":null,"techIndicators":null,"techSignal":null,"source":"WeStock工具返回,NeoData","asOf":"2026-11-18"},{"code":"688256","name":"寒武纪","chain":"AI算力","link":"AI芯片","revenue":5996000000,"revenueYoy":108.13,"netProfit":2311000000,"netProfitYoy":122.61,"roe":18.05,"grossMargin":55.25,"linkRevenueRank":2,"linkProfitRank":1,"price":null,"changePercent":null,"mainNetFlow":null,"mainNetFlow5D":null,"mainNetFlow20D":null,"quoteDate":null,"techIndicators":null,"techSignal":null,"source":"WeStock工具返回,NeoData","asOf":"2026-11-18"},{"code":"688795","name":"摩尔线程","chain":"AI算力","link":"AI芯片","revenue":1736000000,"revenueYoy":147.42,"netProfit":-11560000,"netProfitYoy":null,"roe":null,"grossMargin":56.95,"linkRevenueRank":3,"linkProfitRank":3,"price":null,"changePercent":null,"mainNetFlow":null,"mainNetFlow5D":null,"mainNetFlow20D":null,"quoteDate":null,"techIndicators":null,"techSignal":null,"source":"WeStock工具返回,NeoData","asOf":"2026-11-18"},{"code":"601138","name":"工业富联","chain":"AI算力","link":"服务器整机","revenue":557861000000,"revenueYoy":54.63,"netProfit":23740000000,"netProfitYoy":95.99,"roe":13.36,"grossMargin":7.1507,"linkRevenueRank":1,"linkProfitRank":1,"price":37.17,"changePercent":3.54,"mainNetFlow":407320748,"mainNetFlow5D":-3867209961,"mainNetFlow20D":-5589966094,"quoteDate":"2026-11-18","techIndicators":"{\"macd\":{\"dif\":-3.982,\"dea\":-3.675,\"hist\":-0.615},\"kdj\":{\"k\":18.397,\"d\":24.149,\"j\":6.893},\"rsi\":{\"6\":32.2,\"12\":32.982,\"24\":34.806},\"ma\":{\"5\":38.548,\"10\":40.905,\"20\":43.446,\"60\":54.11,\"120\":60.649,\"250\":59.88},\"boll\":{\"upper\":50.905,\"mid\":43.446,\"lower\":35.986}}","techSignal":"当日放量反弹（量比3.05）站上BOLL下轨（来源：WeStock工具返回，客观描述）","source":"WeStock工具返回（财务2026-06-30；行情/资金/技术2026-11-18）","asOf":"2026-11-18"},{"code":"000977","name":"浪潮信息","chain":"AI算力","link":"服务器整机","revenue":84379000000,"revenueYoy":5.22,"netProfit":2952000000,"netProfitYoy":269.59,"roe":12.74,"grossMargin":8.75,"linkRevenueRank":2,"linkProfitRank":2,"price":null,"changePercent":null,"mainNetFlow":null,"mainNetFlow5D":null,"mainNetFlow20D":null,"quoteDate":null,"techIndicators":null,"techSignal":null,"source":"WeStock工具返回,NeoData","asOf":"2026-11-18"},{"code":"300857","name":"协创数据","chain":"AI算力","link":"服务器整机","revenue":12523000000,"revenueYoy":153.29,"netProfit":1838000000,"netProfitYoy":325.51,"roe":34.31,"grossMargin":25.15,"linkRevenueRank":4,"linkProfitRank":4,"price":null,"changePercent":null,"mainNetFlow":null,"mainNetFlow5D":null,"mainNetFlow20D":null,"quoteDate":null,"techIndicators":null,"techSignal":null,"source":"WeStock工具返回,NeoData","asOf":"2026-11-18"},{"code":"000938","name":"紫光股份","chain":"AI算力","link":"服务器整机","revenue":63516000000,"revenueYoy":33.93,"netProfit":2167000000,"netProfitYoy":108.18,"roe":13.32,"grossMargin":13.41,"linkRevenueRank":3,"linkProfitRank":3,"price":null,"changePercent":null,"mainNetFlow":null,"mainNetFlow5D":null,"mainNetFlow20D":null,"quoteDate":null,"techIndicators":null,"techSignal":null,"source":"WeStock工具返回,NeoData","asOf":"2026-11-18"},{"code":"002156","name":"通富微电","chain":"AI算力","link":"PCB封测","revenue":16041000000,"revenueYoy":23.03,"netProfit":1717000000,"netProfitYoy":316.77,"roe":10.54,"grossMargin":15.45,"linkRevenueRank":1,"linkProfitRank":3,"price":null,"changePercent":null,"mainNetFlow":null,"mainNetFlow5D":null,"mainNetFlow20D":null,"quoteDate":null,"techIndicators":null,"techSignal":null,"source":"WeStock工具返回,NeoData","asOf":"2026-11-18"},{"code":"300476","name":"胜宏科技","chain":"AI算力","link":"PCB封测","revenue":11629000000,"revenueYoy":28.77,"netProfit":2857000000,"netProfitYoy":33.3,"roe":11.8,"grossMargin":33.22,"linkRevenueRank":3,"linkProfitRank":1,"price":null,"changePercent":null,"mainNetFlow":null,"mainNetFlow5D":null,"mainNetFlow20D":null,"quoteDate":null,"techIndicators":null,"techSignal":null,"source":"WeStock工具返回,NeoData","asOf":"2026-11-18"},{"code":"002916","name":"深南电路","chain":"AI算力","link":"PCB封测","revenue":15296000000,"revenueYoy":46.33,"netProfit":2251000000,"netProfitYoy":65.55,"roe":12.43,"grossMargin":31.01,"linkRevenueRank":2,"linkProfitRank":2,"price":null,"changePercent":null,"mainNetFlow":null,"mainNetFlow5D":null,"mainNetFlow20D":null,"quoteDate":null,"techIndicators":null,"techSignal":null,"source":"WeStock工具返回,NeoData","asOf":"2026-11-18"},{"code":"688981","name":"中芯国际","chain":"AI算力","link":"晶圆制造","revenue":38635000000,"revenueYoy":19.44,"netProfit":4467000000,"netProfitYoy":94.16,"roe":2.9,"grossMargin":23.16,"linkRevenueRank":1,"linkProfitRank":1,"price":null,"changePercent":null,"mainNetFlow":null,"mainNetFlow5D":null,"mainNetFlow20D":null,"quoteDate":null,"techIndicators":null,"techSignal":null,"source":"WeStock工具返回,NeoData","asOf":"2026-11-18"},{"code":"002594","name":"比亚迪","chain":"新能源汽车","link":"动力电池电芯","revenue":344815000000,"revenueYoy":-7.13,"netProfit":12325000000,"netProfitYoy":-20.54,"roe":4.86,"grossMargin":18.8473,"linkRevenueRank":1,"linkProfitRank":2,"price":80.56,"changePercent":0.26,"mainNetFlow":7797340,"mainNetFlow5D":-1121476722,"mainNetFlow20D":-2267682325,"quoteDate":"2026-11-18","techIndicators":"{\"macd\":{\"dif\":-0.838,\"dea\":-0.516,\"hist\":-0.644},\"kdj\":{\"k\":19.321,\"d\":28.552,\"j\":0.858},\"rsi\":{\"6\":32.894,\"12\":39.452,\"24\":42.598},\"ma\":{\"5\":80.342,\"10\":82.457,\"20\":82.578,\"60\":84.738,\"120\":87.33,\"250\":92.296},\"boll\":{\"upper\":86.545,\"mid\":82.578,\"lower\":78.611}}","techSignal":"KDJ J=0.86极度超卖（来源：WeStock工具返回，客观描述）","source":"WeStock工具返回（财务2026-06-30；行情/资金/技术2026-11-18）","asOf":"2026-11-18"},{"code":"300750","name":"宁德时代","chain":"新能源汽车","link":"动力电池电芯","revenue":276917000000,"revenueYoy":54.8,"netProfit":43284000000,"netProfitYoy":41.98,"roe":12.08,"grossMargin":23.9284,"linkRevenueRank":2,"linkProfitRank":1,"price":239.79,"changePercent":0.54,"mainNetFlow":95123923,"mainNetFlow5D":-1316425904,"mainNetFlow20D":-1052366863,"quoteDate":"2026-11-18","techIndicators":"{\"macd\":{\"dif\":-10.426,\"dea\":-12.697,\"hist\":4.542},\"kdj\":{\"k\":19.476,\"d\":28.055,\"j\":2.319},\"rsi\":{\"6\":41.286,\"12\":39.787,\"24\":36.765},\"ma\":{\"5\":239.298,\"10\":246.002,\"20\":241.127,\"60\":295.422,\"120\":342.799,\"250\":362.495},\"boll\":{\"upper\":260.949,\"mid\":241.127,\"lower\":221.306}}","techSignal":"MACD柱+4.54金叉、KDJ J=2.32超卖（来源：WeStock工具返回，客观描述）","source":"WeStock工具返回（财务2026-06-30；行情/资金/技术2026-11-18）","asOf":"2026-11-18"},{"code":"300014","name":"亿纬锂能","chain":"新能源汽车","link":"动力电池电芯","revenue":45691000000,"revenueYoy":62.2,"netProfit":3301000000,"netProfitYoy":105.66,"roe":7.24,"grossMargin":14.3107,"linkRevenueRank":3,"linkProfitRank":3,"price":null,"changePercent":null,"mainNetFlow":null,"mainNetFlow5D":null,"mainNetFlow20D":null,"quoteDate":null,"techIndicators":null,"techSignal":null,"source":"WeStock工具返回,NeoData","asOf":"2026-11-18"},{"code":"300207","name":"欣旺达","chain":"新能源汽车","link":"动力电池电芯","revenue":38179000000,"revenueYoy":41.48,"netProfit":603000000,"netProfitYoy":-29.59,"roe":2.44,"grossMargin":15.3327,"linkRevenueRank":4,"linkProfitRank":5,"price":null,"changePercent":null,"mainNetFlow":null,"mainNetFlow5D":null,"mainNetFlow20D":null,"quoteDate":null,"techIndicators":null,"techSignal":null,"source":"WeStock工具返回,NeoData","asOf":"2026-11-18"},{"code":"002074","name":"国轩高科","chain":"新能源汽车","link":"动力电池电芯","revenue":27776000000,"revenueYoy":43.22,"netProfit":1386000000,"netProfitYoy":278.05,"roe":4.68,"grossMargin":15.6033,"linkRevenueRank":5,"linkProfitRank":4,"price":null,"changePercent":null,"mainNetFlow":null,"mainNetFlow5D":null,"mainNetFlow20D":null,"quoteDate":null,"techIndicators":null,"techSignal":null,"source":"WeStock工具返回,NeoData","asOf":"2026-11-18"},{"code":"603799","name":"华友钴业","chain":"新能源汽车","link":"上游材料","revenue":55568000000,"revenueYoy":null,"netProfit":3507000000,"netProfitYoy":null,"roe":null,"grossMargin":null,"linkRevenueRank":1,"linkProfitRank":2,"price":null,"changePercent":null,"mainNetFlow":null,"mainNetFlow5D":null,"mainNetFlow20D":null,"quoteDate":null,"techIndicators":null,"techSignal":null,"source":"WeStock工具返回,NeoData","asOf":"2026-11-18"},{"code":"002460","name":"赣锋锂业","chain":"新能源汽车","link":"上游材料","revenue":23097000000,"revenueYoy":175.75,"netProfit":4257000000,"netProfitYoy":901.36,"roe":null,"grossMargin":null,"linkRevenueRank":2,"linkProfitRank":1,"price":null,"changePercent":null,"mainNetFlow":null,"mainNetFlow5D":null,"mainNetFlow20D":null,"quoteDate":null,"techIndicators":null,"techSignal":null,"source":"WeStock工具返回,NeoData","asOf":"2026-11-18"},{"code":"002709","name":"天赐材料","chain":"新能源汽车","link":"上游材料","revenue":14710000000,"revenueYoy":109.28,"netProfit":2861000000,"netProfitYoy":967.91,"roe":null,"grossMargin":null,"linkRevenueRank":3,"linkProfitRank":3,"price":null,"changePercent":null,"mainNetFlow":null,"mainNetFlow5D":null,"mainNetFlow20D":null,"quoteDate":null,"techIndicators":null,"techSignal":null,"source":"WeStock工具返回,NeoData","asOf":"2026-11-18"},{"code":"603659","name":"璞泰来","chain":"新能源汽车","link":"上游材料","revenue":10115000000,"revenueYoy":null,"netProfit":1452000000,"netProfitYoy":null,"roe":null,"grossMargin":null,"linkRevenueRank":4,"linkProfitRank":4,"price":null,"changePercent":null,"mainNetFlow":null,"mainNetFlow5D":null,"mainNetFlow20D":null,"quoteDate":null,"techIndicators":null,"techSignal":null,"source":"WeStock工具返回,NeoData","asOf":"2026-11-18"},{"code":"688005","name":"容百科技","chain":"新能源汽车","link":"上游材料","revenue":8721000000,"revenueYoy":null,"netProfit":109000000,"netProfitYoy":null,"roe":null,"grossMargin":9.4,"linkRevenueRank":5,"linkProfitRank":6,"price":null,"changePercent":null,"mainNetFlow":null,"mainNetFlow5D":null,"mainNetFlow20D":null,"quoteDate":null,"techIndicators":null,"techSignal":null,"source":"WeStock工具返回,NeoData","asOf":"2026-11-18"},{"code":"002812","name":"恩捷股份","chain":"新能源汽车","link":"上游材料","revenue":8671000000,"revenueYoy":50.47,"netProfit":820000000,"netProfitYoy":980.99,"roe":null,"grossMargin":null,"linkRevenueRank":6,"linkProfitRank":5,"price":null,"changePercent":null,"mainNetFlow":null,"mainNetFlow5D":null,"mainNetFlow20D":null,"quoteDate":null,"techIndicators":null,"techSignal":null,"source":"WeStock工具返回,NeoData","asOf":"2026-11-18"},{"code":"600438","name":"通威股份","chain":"光伏","link":"硅料硅片","revenue":34357000000,"revenueYoy":-15.19,"netProfit":-5119000000,"netProfitYoy":-3.308,"roe":-19.03,"grossMargin":-3.0711,"linkRevenueRank":1,"linkProfitRank":3,"price":null,"changePercent":null,"mainNetFlow":null,"mainNetFlow5D":null,"mainNetFlow20D":null,"quoteDate":null,"techIndicators":null,"techSignal":null,"source":"WeStock工具返回,NeoData","asOf":"2026-11-18"},{"code":"002129","name":"TCL中环","chain":"光伏","link":"硅料硅片","revenue":14315000000,"revenueYoy":6.84,"netProfit":-3204000000,"netProfitYoy":null,"roe":null,"grossMargin":-9.66,"linkRevenueRank":2,"linkProfitRank":2,"price":null,"changePercent":null,"mainNetFlow":null,"mainNetFlow5D":null,"mainNetFlow20D":null,"quoteDate":null,"techIndicators":null,"techSignal":null,"source":"WeStock工具返回,NeoData","asOf":"2026-11-18"},{"code":"688303","name":"大全能源","chain":"光伏","link":"硅料硅片","revenue":623000000,"revenueYoy":-57.63,"netProfit":-1595000000,"netProfitYoy":null,"roe":null,"grossMargin":-74.4,"linkRevenueRank":3,"linkProfitRank":1,"price":null,"changePercent":null,"mainNetFlow":null,"mainNetFlow5D":null,"mainNetFlow20D":null,"quoteDate":null,"techIndicators":null,"techSignal":null,"source":"WeStock工具返回,NeoData","asOf":"2026-11-18"},{"code":"688599","name":"天合光能","chain":"光伏","link":"电池组件","revenue":31985000000,"revenueYoy":2.99,"netProfit":-270000000,"netProfitYoy":null,"roe":null,"grossMargin":7.59,"linkRevenueRank":1,"linkProfitRank":1,"price":null,"changePercent":null,"mainNetFlow":null,"mainNetFlow5D":null,"mainNetFlow20D":null,"quoteDate":null,"techIndicators":null,"techSignal":null,"source":"WeStock工具返回,NeoData","asOf":"2026-11-18"},{"code":"601012","name":"隆基绿能","chain":"光伏","link":"电池组件","revenue":27045000000,"revenueYoy":-17.58,"netProfit":-3684000000,"netProfitYoy":null,"roe":null,"grossMargin":1.34,"linkRevenueRank":2,"linkProfitRank":4,"price":null,"changePercent":null,"mainNetFlow":null,"mainNetFlow5D":null,"mainNetFlow20D":null,"quoteDate":null,"techIndicators":null,"techSignal":null,"source":"WeStock工具返回,NeoData","asOf":"2026-11-18"},{"code":"688223","name":"晶科能源","chain":"光伏","link":"电池组件","revenue":24727000000,"revenueYoy":-22.32,"netProfit":-3076000000,"netProfitYoy":null,"roe":null,"grossMargin":3.41,"linkRevenueRank":3,"linkProfitRank":3,"price":null,"changePercent":null,"mainNetFlow":null,"mainNetFlow5D":null,"mainNetFlow20D":null,"quoteDate":null,"techIndicators":null,"techSignal":null,"source":"WeStock工具返回,NeoData","asOf":"2026-11-18"},{"code":"002459","name":"晶澳科技","chain":"光伏","link":"电池组件","revenue":17498000000,"revenueYoy":null,"netProfit":-2663000000,"netProfitYoy":null,"roe":null,"grossMargin":1.29,"linkRevenueRank":4,"linkProfitRank":2,"price":null,"changePercent":null,"mainNetFlow":null,"mainNetFlow5D":null,"mainNetFlow20D":null,"quoteDate":null,"techIndicators":null,"techSignal":null,"source":"WeStock工具返回,NeoData","asOf":"2026-11-18"},{"code":"300274","name":"阳光电源","chain":"光伏","link":"逆变器辅材设备","revenue":30912000000,"revenueYoy":-28.99,"netProfit":5259000000,"netProfitYoy":-32.01,"roe":null,"grossMargin":null,"linkRevenueRank":1,"linkProfitRank":1,"price":null,"changePercent":null,"mainNetFlow":null,"mainNetFlow5D":null,"mainNetFlow20D":null,"quoteDate":null,"techIndicators":null,"techSignal":null,"source":"WeStock工具返回,NeoData","asOf":"2026-11-18"},{"code":"603806","name":"福斯特","chain":"光伏","link":"逆变器辅材设备","revenue":6988000000,"revenueYoy":-12.2,"netProfit":842000000,"netProfitYoy":69.89,"roe":null,"grossMargin":null,"linkRevenueRank":2,"linkProfitRank":2,"price":null,"changePercent":null,"mainNetFlow":null,"mainNetFlow5D":null,"mainNetFlow20D":null,"quoteDate":null,"techIndicators":null,"techSignal":null,"source":"WeStock工具返回,NeoData","asOf":"2026-11-18"},{"code":"601865","name":"福莱特","chain":"光伏","link":"逆变器辅材设备","revenue":6668000000,"revenueYoy":null,"netProfit":-363000000,"netProfitYoy":null,"roe":null,"grossMargin":null,"linkRevenueRank":3,"linkProfitRank":5,"price":null,"changePercent":null,"mainNetFlow":null,"mainNetFlow5D":null,"mainNetFlow20D":null,"quoteDate":null,"techIndicators":null,"techSignal":null,"source":"WeStock工具返回,NeoData","asOf":"2026-11-18"},{"code":"300316","name":"晶盛机电","chain":"光伏","link":"逆变器辅材设备","revenue":3452000000,"revenueYoy":null,"netProfit":232000000,"netProfitYoy":null,"roe":null,"grossMargin":null,"linkRevenueRank":4,"linkProfitRank":4,"price":null,"changePercent":null,"mainNetFlow":null,"mainNetFlow5D":null,"mainNetFlow20D":null,"quoteDate":null,"techIndicators":null,"techSignal":null,"source":"WeStock工具返回,NeoData","asOf":"2026-11-18"},{"code":"300724","name":"捷佳伟创","chain":"光伏","link":"逆变器辅材设备","revenue":2727000000,"revenueYoy":-67.43,"netProfit":375000000,"netProfitYoy":-79.53,"roe":null,"grossMargin":null,"linkRevenueRank":5,"linkProfitRank":3,"price":null,"changePercent":null,"mainNetFlow":null,"mainNetFlow5D":null,"mainNetFlow20D":null,"quoteDate":null,"techIndicators":null,"techSignal":null,"source":"WeStock工具返回,NeoData","asOf":"2026-11-18"},{"code":"600519","name":"贵州茅台","chain":null,"link":null,"revenue":92278072083.21,"revenueYoy":1.3001,"netProfit":44516880421.86,"netProfitYoy":-1.9516,"roe":16.75,"grossMargin":89.5552,"linkRevenueRank":null,"linkProfitRank":null,"price":1453.86,"changePercent":-0.26,"mainNetFlow":35445100,"mainNetFlow5D":315523985,"mainNetFlow20D":958186843,"quoteDate":"2026-11-18","techIndicators":"{\"macd\":{\"dif\":35.436,\"dea\":35.957,\"hist\":-1.041},\"kdj\":{\"k\":75.484,\"d\":67.712,\"j\":91.028},\"rsi\":{\"6\":64.103,\"12\":64.694,\"24\":62.948},\"ma\":{\"5\":1442.198,\"10\":1440.228,\"20\":1410.2,\"60\":1327.017,\"120\":1293.961,\"250\":1342.261},\"boll\":{\"upper\":1510.042,\"mid\":1410.2,\"lower\":1310.357}}","techSignal":"站上全部均线、KDJ J=91.03超买、RSI6=64.10（来源：WeStock工具返回，客观描述）","source":"WeStock工具返回（财务2026-06-30；行情/资金/技术2026-11-18）","asOf":"2026-11-18"}],"watch":[{"code":"601628","name":"中国人寿","chain":null,"link":null,"discloseStatus":"已发业绩预告","forecastType":"预增","forecastProfitMin":128933000000,"forecastProfitMax":137119000000,"forecastYoyMin":215,"forecastYoyMax":235,"scheduledDate":null,"statDate":"2026-07-15","enteredOfficial":true,"note":"历史预告快照（截至7/15）；已转正入榜","source":"Wind","asOf":"2026-11-18"},{"code":"301308","name":"江波龙","chain":null,"link":null,"discloseStatus":"已发业绩预告","forecastType":"预增","forecastProfitMin":9200000000,"forecastProfitMax":11000000000,"forecastYoyMin":62204.03,"forecastYoyMax":74393.95,"scheduledDate":null,"statDate":"2026-07-15","enteredOfficial":true,"note":"历史预告快照（截至7/15）；已转正入榜","source":"Wind","asOf":"2026-11-18"},{"code":"601899","name":"紫金矿业","chain":null,"link":null,"discloseStatus":"已发业绩预告","forecastType":"预增","forecastProfitMin":39100000000,"forecastProfitMax":null,"forecastYoyMin":68,"forecastYoyMax":null,"scheduledDate":null,"statDate":"2026-07-15","enteredOfficial":true,"note":"历史预告快照（截至7/15）；已转正入榜；约值","source":"Wind","asOf":"2026-11-18"},{"code":"603993","name":"洛阳钼业","chain":null,"link":null,"discloseStatus":"已发业绩预告","forecastType":"预增","forecastProfitMin":15500000000,"forecastProfitMax":16500000000,"forecastYoyMin":84.5,"forecastYoyMax":null,"scheduledDate":null,"statDate":"2026-07-15","enteredOfficial":true,"note":"历史预告快照（截至7/15）；已转正入榜","source":"Wind","asOf":"2026-11-18"},{"code":"600030","name":"中信证券","chain":null,"link":null,"discloseStatus":"已发业绩预告","forecastType":"预增","forecastProfitMin":23300000000,"forecastProfitMax":null,"forecastYoyMin":69.6,"forecastYoyMax":null,"scheduledDate":null,"statDate":"2026-07-15","enteredOfficial":true,"note":"历史预告快照（截至7/15）；已转正入榜；约值","source":"Wind","asOf":"2026-11-18"},{"code":"002379","name":"宏桥控股","chain":null,"link":null,"discloseStatus":"已发业绩预告","forecastType":"预增","forecastProfitMin":15000000000,"forecastProfitMax":16000000000,"forecastYoyMin":75.4,"forecastYoyMax":null,"scheduledDate":null,"statDate":"2026-07-15","enteredOfficial":true,"note":"历史预告快照（截至7/15）；已转正入榜","source":"Wind","asOf":"2026-11-18"},{"code":"601336","name":"新华保险","chain":null,"link":null,"discloseStatus":"已发业绩预告","forecastType":"预增","forecastProfitMin":20700000000,"forecastProfitMax":23700000000,"forecastYoyMin":50,"forecastYoyMax":50,"scheduledDate":null,"statDate":"2026-07-15","enteredOfficial":true,"note":"历史预告快照（截至7/15）；已转正入榜","source":"Wind","asOf":"2026-11-18"},{"code":"600999","name":"招商证券","chain":null,"link":null,"discloseStatus":"已发业绩预告","forecastType":"预增","forecastProfitMin":10000000000,"forecastProfitMax":11000000000,"forecastYoyMin":93,"forecastYoyMax":112,"scheduledDate":null,"statDate":"2026-07-15","enteredOfficial":true,"note":"历史预告快照（截至7/15）；已转正入榜","source":"Wind","asOf":"2026-11-18"},{"code":"601088","name":"中国神华","chain":null,"link":null,"discloseStatus":"已发业绩预告","forecastType":null,"forecastProfitMin":null,"forecastProfitMax":29800000000,"forecastYoyMin":null,"forecastYoyMax":null,"scheduledDate":null,"statDate":"2026-07-15","enteredOfficial":true,"note":"历史预告快照（截至7/15）；已转正入榜；约值，仅上限","source":"Wind","asOf":"2026-11-18"},{"code":"688525","name":"佰维存储","chain":null,"link":null,"discloseStatus":"已发业绩预告","forecastType":"扭亏","forecastProfitMin":7000000000,"forecastProfitMax":7500000000,"forecastYoyMin":3200.15,"forecastYoyMax":3421.59,"scheduledDate":null,"statDate":"2026-07-15","enteredOfficial":true,"note":"历史预告快照（截至7/15）；已转正入榜","source":"上交所公告,NeoData","asOf":"2026-11-18"},{"code":"688825","name":"长鑫科技","chain":null,"link":null,"discloseStatus":"已发业绩预告","forecastType":"预增","forecastProfitMin":50000000000,"forecastProfitMax":57000000000,"forecastYoyMin":2244.03,"forecastYoyMax":2544.19,"scheduledDate":null,"statDate":"2026-07-15","enteredOfficial":true,"note":"招股书业绩预计，非交易所格式化预告；已转正入榜","source":"上交所公告,招股说明书,NeoData","asOf":"2026-11-18"},{"code":"002460","name":"赣锋锂业","chain":null,"link":null,"discloseStatus":"已发业绩预告","forecastType":"扭亏","forecastProfitMin":3650000000,"forecastProfitMax":4600000000,"forecastYoyMin":787.07,"forecastYoyMax":965.9,"scheduledDate":null,"statDate":"2026-07-15","enteredOfficial":true,"note":"历史预告快照（截至7/15）；已转正入榜","source":"深交所公告,NeoData","asOf":"2026-11-18"},{"code":"002731","name":"*ST萃华","chain":null,"link":null,"discloseStatus":"待披露未预告","forecastType":null,"forecastProfitMin":null,"forecastProfitMax":null,"forecastYoyMin":null,"forecastYoyMax":null,"scheduledDate":null,"statDate":"2026-08-31","enteredOfficial":false,"note":"截至2026-08-31法定截止日仍未披露半年报","source":"深交所公告","asOf":"2026-11-18"}],"macro":[{"name":"有色金属","level":"申万一级","chain":null,"revenueYoy":"待填","netProfitYoy":106.31,"roeAvg":18.45,"roeCaliber":"TTM滚动12个月","prosperity":"高景气","macroValue":null,"macroUnit":null,"compareNote":"ROE为TTM滚动12个月、非加权平均半年度；按净利同比分档判定（计算值）；行业营收同比未采集","source":"WeStock工具返回","asOf":"2026-11-18"},{"name":"电子","level":"申万一级","chain":null,"revenueYoy":"待填","netProfitYoy":100.76,"roeAvg":9.11,"roeCaliber":"TTM滚动12个月","prosperity":"高景气","macroValue":null,"macroUnit":null,"compareNote":"ROE为TTM滚动12个月、非加权平均半年度；按净利同比分档判定（计算值）；行业营收同比未采集","source":"WeStock工具返回","asOf":"2026-11-18"},{"name":"计算机","level":"申万一级","chain":null,"revenueYoy":"待填","netProfitYoy":59.38,"roeAvg":3.34,"roeCaliber":"TTM滚动12个月","prosperity":"高景气","macroValue":null,"macroUnit":null,"compareNote":"ROE为TTM滚动12个月、非加权平均半年度；按净利同比分档判定（计算值）；行业营收同比未采集","source":"WeStock工具返回","asOf":"2026-11-18"},{"name":"国防军工","level":"申万一级","chain":null,"revenueYoy":"待填","netProfitYoy":52.6,"roeAvg":4.97,"roeCaliber":"TTM滚动12个月","prosperity":"高景气","macroValue":null,"macroUnit":null,"compareNote":"ROE为TTM滚动12个月、非加权平均半年度；按净利同比分档判定（计算值）；行业营收同比未采集","source":"WeStock工具返回","asOf":"2026-11-18"},{"name":"电力设备","level":"申万一级","chain":null,"revenueYoy":"待填","netProfitYoy":38.33,"roeAvg":6.02,"roeCaliber":"TTM滚动12个月","prosperity":"高景气","macroValue":null,"macroUnit":null,"compareNote":"ROE为TTM滚动12个月、非加权平均半年度；按净利同比分档判定（计算值）；行业营收同比未采集","source":"WeStock工具返回","asOf":"2026-11-18"},{"name":"环保","level":"申万一级","chain":null,"revenueYoy":"待填","netProfitYoy":21.05,"roeAvg":4.72,"roeCaliber":"TTM滚动12个月","prosperity":"平稳","macroValue":null,"macroUnit":null,"compareNote":"ROE为TTM滚动12个月、非加权平均半年度；按净利同比分档判定（计算值）；行业营收同比未采集","source":"WeStock工具返回","asOf":"2026-11-18"},{"name":"医药生物","level":"申万一级","chain":null,"revenueYoy":"待填","netProfitYoy":10.16,"roeAvg":6.25,"roeCaliber":"TTM滚动12个月","prosperity":"平稳","macroValue":null,"macroUnit":null,"compareNote":"ROE为TTM滚动12个月、非加权平均半年度；按净利同比分档判定（计算值）；行业营收同比未采集","source":"WeStock工具返回","asOf":"2026-11-18"},{"name":"传媒","level":"申万一级","chain":null,"revenueYoy":"待填","netProfitYoy":10.42,"roeAvg":4.58,"roeCaliber":"TTM滚动12个月","prosperity":"平稳","macroValue":null,"macroUnit":null,"compareNote":"ROE为TTM滚动12个月、非加权平均半年度；按净利同比分档判定（计算值）；行业营收同比未采集","source":"WeStock工具返回","asOf":"2026-11-18"},{"name":"交通运输","level":"申万一级","chain":null,"revenueYoy":"待填","netProfitYoy":8.88,"roeAvg":7.9,"roeCaliber":"TTM滚动12个月","prosperity":"平稳","macroValue":null,"macroUnit":null,"compareNote":"ROE为TTM滚动12个月、非加权平均半年度；按净利同比分档判定（计算值）；行业营收同比未采集","source":"WeStock工具返回","asOf":"2026-11-18"},{"name":"通信","level":"申万一级","chain":null,"revenueYoy":"待填","netProfitYoy":6,"roeAvg":9.08,"roeCaliber":"TTM滚动12个月","prosperity":"平稳","macroValue":null,"macroUnit":null,"compareNote":"ROE为TTM滚动12个月、非加权平均半年度；按净利同比分档判定（计算值）；行业营收同比未采集","source":"WeStock工具返回","asOf":"2026-11-18"},{"name":"银行","level":"申万一级","chain":null,"revenueYoy":"待填","netProfitYoy":2.96,"roeAvg":8.3,"roeCaliber":"TTM滚动12个月","prosperity":"平稳","macroValue":null,"macroUnit":null,"compareNote":"ROE为TTM滚动12个月、非加权平均半年度；按净利同比分档判定（计算值）；行业营收同比未采集","source":"WeStock工具返回","asOf":"2026-11-18"},{"name":"机械设备","level":"申万一级","chain":null,"revenueYoy":"待填","netProfitYoy":2.46,"roeAvg":6.39,"roeCaliber":"TTM滚动12个月","prosperity":"平稳","macroValue":null,"macroUnit":null,"compareNote":"ROE为TTM滚动12个月、非加权平均半年度；按净利同比分档判定（计算值）；行业营收同比未采集","source":"WeStock工具返回","asOf":"2026-11-18"},{"name":"美容护理","level":"申万一级","chain":null,"revenueYoy":"待填","netProfitYoy":1.74,"roeAvg":7.9,"roeCaliber":"TTM滚动12个月","prosperity":"平稳","macroValue":null,"macroUnit":null,"compareNote":"ROE为TTM滚动12个月、非加权平均半年度；按净利同比分档判定（计算值）；行业营收同比未采集","source":"WeStock工具返回","asOf":"2026-11-18"},{"name":"食品饮料","level":"申万一级","chain":null,"revenueYoy":"待填","netProfitYoy":-4.85,"roeAvg":16.04,"roeCaliber":"TTM滚动12个月","prosperity":"承压","macroValue":null,"macroUnit":null,"compareNote":"ROE为TTM滚动12个月、非加权平均半年度；按净利同比分档判定（计算值）；行业营收同比未采集","source":"WeStock工具返回","asOf":"2026-11-18"},{"name":"汽车","level":"申万一级","chain":null,"revenueYoy":"待填","netProfitYoy":-20.49,"roeAvg":6.86,"roeCaliber":"TTM滚动12个月","prosperity":"承压","macroValue":null,"macroUnit":null,"compareNote":"ROE为TTM滚动12个月、非加权平均半年度；按净利同比分档判定（计算值）；行业营收同比未采集","source":"WeStock工具返回","asOf":"2026-11-18"},{"name":"综合","level":"申万一级","chain":null,"revenueYoy":"待填","netProfitYoy":-43.53,"roeAvg":-4.86,"roeCaliber":"TTM滚动12个月","prosperity":"下行","macroValue":null,"macroUnit":null,"compareNote":"ROE为TTM滚动12个月、非加权平均半年度；按净利同比分档判定（计算值）；行业营收同比未采集","source":"WeStock工具返回","asOf":"2026-11-18"},{"name":"建筑材料","level":"申万一级","chain":null,"revenueYoy":"待填","netProfitYoy":-45.87,"roeAvg":1.01,"roeCaliber":"TTM滚动12个月","prosperity":"下行","macroValue":null,"macroUnit":null,"compareNote":"ROE为TTM滚动12个月、非加权平均半年度；按净利同比分档判定（计算值）；行业营收同比未采集","source":"WeStock工具返回","asOf":"2026-11-18"},{"name":"GDP实际增速","level":"宏观指标","chain":null,"revenueYoy":null,"netProfitYoy":null,"roeAvg":null,"roeCaliber":null,"prosperity":null,"macroValue":4.7,"macroUnit":"%","compareNote":"统计期2026H1（累计同比）；与asOf 2026-11-18（研究整理日）区分","source":"国家统计局","asOf":"2026-11-18"},{"name":"规上工业增加值","level":"宏观指标","chain":null,"revenueYoy":null,"netProfitYoy":null,"roeAvg":null,"roeCaliber":null,"prosperity":null,"macroValue":5.4,"macroUnit":"%","compareNote":"统计期2026H1（累计同比）；与asOf 2026-11-18（研究整理日）区分","source":"国家统计局","asOf":"2026-11-18"},{"name":"制造业PMI","level":"宏观指标","chain":null,"revenueYoy":null,"netProfitYoy":null,"roeAvg":null,"roeCaliber":null,"prosperity":null,"macroValue":50.3,"macroUnit":"点","compareNote":"6月末口径（统计期2026H1末）；与asOf 2026-11-18（研究整理日）区分","source":"国家统计局","asOf":"2026-11-18"},{"name":"CPI","level":"宏观指标","chain":null,"revenueYoy":null,"netProfitYoy":null,"roeAvg":null,"roeCaliber":null,"prosperity":null,"macroValue":1,"macroUnit":"%","compareNote":"统计期2026H1（累计同比）；与asOf 2026-11-18（研究整理日）区分","source":"国家统计局","asOf":"2026-11-18"},{"name":"PPI","level":"宏观指标","chain":null,"revenueYoy":null,"netProfitYoy":null,"roeAvg":null,"roeCaliber":null,"prosperity":null,"macroValue":1.5,"macroUnit":"%","compareNote":"统计期2026H1（累计同比）；与asOf 2026-11-18（研究整理日）区分","source":"国家统计局","asOf":"2026-11-18"},{"name":"社零","level":"宏观指标","chain":null,"revenueYoy":null,"netProfitYoy":null,"roeAvg":null,"roeCaliber":null,"prosperity":null,"macroValue":1.3,"macroUnit":"%","compareNote":"统计期2026H1（累计同比）；与asOf 2026-11-18（研究整理日）区分","source":"国家统计局","asOf":"2026-11-18"},{"name":"固投","level":"宏观指标","chain":null,"revenueYoy":null,"netProfitYoy":null,"roeAvg":null,"roeCaliber":null,"prosperity":null,"macroValue":-5.7,"macroUnit":"%","compareNote":"统计期2026H1（累计同比，不含农户）；与asOf 2026-11-18（研究整理日）区分","source":"国家统计局","asOf":"2026-11-18"},{"name":"房地产开发投资","level":"宏观指标","chain":null,"revenueYoy":null,"netProfitYoy":null,"roeAvg":null,"roeCaliber":null,"prosperity":null,"macroValue":-18,"macroUnit":"%","compareNote":"统计期2026H1（累计同比）；与asOf 2026-11-18（研究整理日）区分","source":"国家统计局","asOf":"2026-11-18"},{"name":"进出口","level":"宏观指标","chain":null,"revenueYoy":null,"netProfitYoy":null,"roeAvg":null,"roeCaliber":null,"prosperity":null,"macroValue":16.9,"macroUnit":"%","compareNote":"统计期2026H1（人民币口径累计同比）；与asOf 2026-11-18（研究整理日）区分","source":"海关总署","asOf":"2026-11-18"},{"name":"M2","level":"宏观指标","chain":null,"revenueYoy":null,"netProfitYoy":null,"roeAvg":null,"roeCaliber":null,"prosperity":null,"macroValue":8,"macroUnit":"%","compareNote":"6月末口径（统计期2026H1末）；与asOf 2026-11-18（研究整理日）区分","source":"中国人民银行","asOf":"2026-11-18"},{"name":"规上工业企业利润","level":"宏观指标","chain":null,"revenueYoy":null,"netProfitYoy":null,"roeAvg":null,"roeCaliber":null,"prosperity":null,"macroValue":18.7,"macroUnit":"%","compareNote":"统计期2026H1（1—6月累计同比）；与asOf 2026-11-18（研究整理日）区分","source":"国家统计局","asOf":"2026-11-18"},{"name":"城镇调查失业率","level":"宏观指标","chain":null,"revenueYoy":null,"netProfitYoy":null,"roeAvg":null,"roeCaliber":null,"prosperity":null,"macroValue":5.2,"macroUnit":"%","compareNote":"统计期2026H1（上半年均值）；与asOf 2026-11-18（研究整理日）区分","source":"国家统计局","asOf":"2026-11-18"},{"name":"主板","level":"板块","chain":null,"revenueYoy":5.58,"netProfitYoy":13.64,"roeAvg":null,"roeCaliber":null,"prosperity":null,"macroValue":null,"macroUnit":null,"compareNote":"统计期2026H1分板块整体法；与asOf 2026-11-18区分","source":"Wind","asOf":"2026-11-18"},{"name":"创业板","level":"板块","chain":null,"revenueYoy":22.1,"netProfitYoy":32.44,"roeAvg":null,"roeCaliber":null,"prosperity":null,"macroValue":null,"macroUnit":null,"compareNote":"统计期2026H1分板块整体法；与asOf 2026-11-18区分","source":"Wind","asOf":"2026-11-18"},{"name":"科创板","level":"板块","chain":null,"revenueYoy":38.56,"netProfitYoy":438.45,"roeAvg":null,"roeCaliber":null,"prosperity":null,"macroValue":null,"macroUnit":null,"compareNote":"统计期2026H1分板块整体法；科创板增速受长鑫科技驱动；与asOf 2026-11-18区分","source":"Wind","asOf":"2026-11-18"},{"name":"北交所","level":"板块","chain":null,"revenueYoy":14.92,"netProfitYoy":17.19,"roeAvg":null,"roeCaliber":null,"prosperity":null,"macroValue":null,"macroUnit":null,"compareNote":"统计期2026H1分板块整体法；与asOf 2026-11-18区分","source":"Wind","asOf":"2026-11-18"},{"name":"半导体","level":"产业链","chain":"AI算力","revenueYoy":69.8,"netProfitYoy":538.3,"roeAvg":null,"roeCaliber":null,"prosperity":null,"macroValue":null,"macroUnit":null,"compareNote":"申万二级口径；统计期2026H1；与asOf 2026-11-18区分","source":"Wind","asOf":"2026-11-18"},{"name":"能源金属","level":"产业链","chain":"新能源汽车","revenueYoy":74.8,"netProfitYoy":310.85,"roeAvg":null,"roeCaliber":null,"prosperity":null,"macroValue":null,"macroUnit":null,"compareNote":"申万二级口径；统计期2026H1；与asOf 2026-11-18区分","source":"Wind","asOf":"2026-11-18"},{"name":"工业金属","level":"产业链","chain":"新能源汽车","revenueYoy":30.6,"netProfitYoy":104.41,"roeAvg":null,"roeCaliber":null,"prosperity":null,"macroValue":null,"macroUnit":null,"compareNote":"申万二级口径；统计期2026H1；与asOf 2026-11-18区分","source":"Wind","asOf":"2026-11-18"},{"name":"上证指数","level":"指数行情","chain":null,"revenueYoy":null,"netProfitYoy":null,"roeAvg":null,"roeCaliber":null,"prosperity":null,"macroValue":3582.35,"macroUnit":"点","compareNote":"2026-11-18 09:56盘中快照（非收盘）；年初至今基准2025-12-31；散户净流入按小单净流入近似（散户口径）","source":"WeStock工具返回","asOf":"2026-11-18","changePercent":-0.06,"turnoverRate":0.24,"chg5d":-2.67,"chg20d":-3.52,"chgYtd":-9.74,"mainNetFlow":-952994001,"retailNetFlow":2665647543,"quoteTime":"2026-11-18 09:56"},{"name":"深证成指","level":"指数行情","chain":null,"revenueYoy":null,"netProfitYoy":null,"roeAvg":null,"roeCaliber":null,"prosperity":null,"macroValue":10598.71,"macroUnit":"点","compareNote":"2026-11-18 09:56盘中快照（非收盘）；年初至今基准2025-12-31；散户净流入按小单净流入近似（散户口径）","source":"WeStock工具返回","asOf":"2026-11-18","changePercent":-0.37,"turnoverRate":0.58,"chg5d":-6.95,"chg20d":-9.45,"chgYtd":-21.64,"mainNetFlow":-1295180909,"retailNetFlow":1896688890,"quoteTime":"2026-11-18 09:56"},{"name":"创业板指","level":"指数行情","chain":null,"revenueYoy":null,"netProfitYoy":null,"roeAvg":null,"roeCaliber":null,"prosperity":null,"macroValue":2283.52,"macroUnit":"点","compareNote":"2026-11-18 09:56盘中快照（非收盘）；年初至今基准2025-12-31；散户净流入按小单净流入近似（散户口径）","source":"WeStock工具返回","asOf":"2026-11-18","changePercent":-0.38,"turnoverRate":0.71,"chg5d":-11.22,"chg20d":-15.26,"chgYtd":-28.71,"mainNetFlow":-272397563,"retailNetFlow":422085223,"quoteTime":"2026-11-18 09:56"},{"name":"沪深300","level":"指数行情","chain":null,"revenueYoy":null,"netProfitYoy":null,"roeAvg":null,"roeCaliber":null,"prosperity":null,"macroValue":3971.51,"macroUnit":"点","compareNote":"2026-11-18 09:56盘中快照（非收盘）；年初至今基准2025-12-31；散户净流入按小单净流入近似（散户口径）","source":"WeStock工具返回","asOf":"2026-11-18","changePercent":-0.12,"turnoverRate":0.12,"chg5d":-2.56,"chg20d":-3.41,"chgYtd":-14.22,"mainNetFlow":474116271,"retailNetFlow":1027565109,"quoteTime":"2026-11-18 09:56"},{"name":"上证50","level":"指数行情","chain":null,"revenueYoy":null,"netProfitYoy":null,"roeAvg":null,"roeCaliber":null,"prosperity":null,"macroValue":2761.69,"macroUnit":"点","compareNote":"2026-11-18 09:56盘中快照（非收盘）；年初至今基准2025-12-31；该指数无资金流明细；散户净流入按小单净流入近似（散户口径）","source":"WeStock工具返回","asOf":"2026-11-18","changePercent":-0.24,"turnoverRate":0.06,"chg5d":-0.14,"chg20d":0.53,"chgYtd":-8.89,"mainNetFlow":null,"retailNetFlow":null,"quoteTime":"2026-11-18 09:56"},{"name":"科创50","level":"指数行情","chain":null,"revenueYoy":null,"netProfitYoy":null,"roeAvg":null,"roeCaliber":null,"prosperity":null,"macroValue":1232.08,"macroUnit":"点","compareNote":"2026-11-18 09:56盘中快照（非收盘）；年初至今基准2025-12-31；散户净流入按小单净流入近似（散户口径）","source":"WeStock工具返回","asOf":"2026-11-18","changePercent":0.89,"turnoverRate":0.33,"chg5d":-5.25,"chg20d":-8.28,"chgYtd":-8.34,"mainNetFlow":907456268,"retailNetFlow":-288190927,"quoteTime":"2026-11-18 09:56"},{"name":"中证500","level":"指数行情","chain":null,"revenueYoy":null,"netProfitYoy":null,"roeAvg":null,"roeCaliber":null,"prosperity":null,"macroValue":6249.13,"macroUnit":"点","compareNote":"2026-11-18 09:56盘中快照（非收盘）；年初至今基准2025-12-31；该指数无资金流明细；散户净流入按小单净流入近似（散户口径）","source":"WeStock工具返回","asOf":"2026-11-18","changePercent":-0.54,"turnoverRate":0.25,"chg5d":-6.91,"chg20d":-8.65,"chgYtd":-16.29,"mainNetFlow":null,"retailNetFlow":null,"quoteTime":"2026-11-18 09:56"}]};
+
+/* ---------- 内存数据集：初始化为 SNAPSHOT 的深拷贝 ---------- */
+var DATA = JSON.parse(JSON.stringify(SNAPSHOT));
+/* 兼容层①：若注入方按 CONTRACT 别名键名写入快照而主键名为空，则自动映射（不覆盖已有主键数据） */
+(function(){
+  var aliasMap = { chainLink:'chain', doubleGrowth:'growth', chainCompany:'compare' }, a, src, dst;
+  for(a in aliasMap) if(Object.prototype.hasOwnProperty.call(aliasMap,a)){
+    src = SNAPSHOT[a]; dst = aliasMap[a];
+    if(Object.prototype.toString.call(src)==='[object Array]' && src.length>0 &&
+       Object.prototype.toString.call(SNAPSHOT[dst])==='[object Array]' && SNAPSHOT[dst].length===0){
+      DATA[dst] = JSON.parse(JSON.stringify(src));
+    }
+  }
+})();
+
+/* ---------- 表头中文映射（导出用，顺序即列顺序） ---------- */
+var HEADERS = {
+  market: [
+    {key:'code',label:'股票代码'},{key:'name',label:'股票简称'},{key:'swIndustry',label:'申万一级行业'},
+    {key:'chain',label:'所属产业链'},{key:'link',label:'所属环节'},{key:'revenue',label:'营业总收入'},
+    {key:'revenueYoy',label:'营收同比'},{key:'netProfit',label:'归母净利润'},{key:'netProfitYoy',label:'归母净利同比'},
+    {key:'deductNetProfit',label:'扣非净利润'},{key:'ocf',label:'经营现金流净额'},{key:'roe',label:'加权平均ROE'},
+    {key:'grossMargin',label:'毛利率'},{key:'discloseDate',label:'披露日期'},{key:'source',label:'数据来源'},{key:'asOf',label:'数据时点'}
+  ],
+  chain: [
+    {key:'chain',label:'产业链'},{key:'link',label:'环节'},{key:'companyCount',label:'环节公司数'},
+    {key:'revenueSum',label:'环节营收合计'},{key:'revenueYoy',label:'环节营收同比'},{key:'netProfitSum',label:'环节归母净利合计'},
+    {key:'netProfitYoy',label:'环节净利同比'},{key:'roeAvg',label:'环节平均ROE'},{key:'grossMarginAvg',label:'环节平均毛利率'},
+    {key:'profitRank',label:'赚钱能力排名'},{key:'leadCompanies',label:'代表公司'},{key:'source',label:'数据来源'},{key:'asOf',label:'数据时点'}
+  ],
+  growth: [
+    {key:'code',label:'股票代码'},{key:'name',label:'股票简称'},{key:'chain',label:'所属产业链'},{key:'link',label:'所属环节'},
+    {key:'swIndustry',label:'申万一级行业'},{key:'revenue',label:'营业总收入'},{key:'revenueYoy',label:'营收同比'},
+    {key:'netProfit',label:'归母净利润'},{key:'netProfitYoy',label:'归母净利同比'},{key:'roe',label:'加权平均ROE'},
+    {key:'growthScore',label:'双增强度'},{key:'discloseDate',label:'披露日期'},
+    {key:'source',label:'数据来源'},{key:'asOf',label:'数据时点'}
+  ],
+  compare: [
+    {key:'code',label:'股票代码'},{key:'name',label:'股票简称'},{key:'chain',label:'所属产业链'},{key:'link',label:'所属环节'},
+    {key:'revenue',label:'营业总收入'},{key:'revenueYoy',label:'营收同比'},{key:'netProfit',label:'归母净利润'},
+    {key:'netProfitYoy',label:'归母净利同比'},{key:'roe',label:'加权平均ROE'},{key:'grossMargin',label:'毛利率'},
+    {key:'price',label:'最新价'},{key:'changePercent',label:'涨跌幅'},
+    {key:'mainNetFlow',label:'主力净流入'},{key:'mainNetFlow5D',label:'5日主力净流入'},{key:'mainNetFlow20D',label:'20日主力净流入'},
+    {key:'quoteDate',label:'行情日期'},{key:'techIndicators',label:'技术指标数值'},{key:'techSignal',label:'技术面摘要'},
+    {key:'linkRevenueRank',label:'环节内营收排名'},
+    {key:'linkProfitRank',label:'环节内净利排名'},{key:'source',label:'数据来源'},{key:'asOf',label:'数据时点'}
+  ],
+  watch: [
+    {key:'code',label:'股票代码'},{key:'name',label:'股票简称'},{key:'chain',label:'所属产业链'},{key:'link',label:'所属环节'},
+    {key:'discloseStatus',label:'披露状态'},{key:'forecastType',label:'预告类型'},{key:'forecastProfitMin',label:'预告净利下限'},
+    {key:'forecastProfitMax',label:'预告净利上限'},{key:'forecastYoyMin',label:'预告净利同比下限'},
+    {key:'forecastYoyMax',label:'预告净利同比上限'},{key:'scheduledDate',label:'预约披露日期'},
+    {key:'enteredOfficial',label:'是否已入正式榜'},{key:'statDate',label:'观察统计时点'},{key:'note',label:'备注'},{key:'source',label:'数据来源'},{key:'asOf',label:'数据时点'}
+  ],
+  macro: [
+    {key:'name',label:'行业或指标名称'},{key:'level',label:'层级'},{key:'chain',label:'关联产业链'},
+    {key:'revenueYoy',label:'营收同比'},{key:'netProfitYoy',label:'净利同比'},{key:'roeAvg',label:'平均ROE'},{key:'roeCaliber',label:'ROE口径'},
+    {key:'prosperity',label:'景气度标签'},{key:'macroValue',label:'宏观指标值'},{key:'macroUnit',label:'宏观指标单位'},
+    {key:'compareNote',label:'对照说明'},{key:'source',label:'数据来源'},{key:'asOf',label:'数据时点'},
+    {key:'changePercent',label:'涨跌幅'},{key:'turnoverRate',label:'换手率'},{key:'chg5d',label:'近5日涨跌'},
+    {key:'chg20d',label:'近20日涨跌'},{key:'chgYtd',label:'年初至今'},{key:'mainNetFlow',label:'主力净流入'},
+    {key:'retailNetFlow',label:'散户净流入'},{key:'quoteTime',label:'行情时点'}
+  ]
+};
+
+var FILENAME = {
+  market:'h1_2026_market.csv', chain:'h1_2026_chain_link.csv', growth:'h1_2026_double_growth.csv',
+  compare:'h1_2026_chain_company.csv', watch:'h1_2026_watch.csv', macro:'h1_2026_macro.csv'
+};
+
+/* ---------- SDK 中文字段归一化（CONTRACT §1 中文表头 ↔ 对象键） ----------
+   db.query 返回的记录键为 CSV 中文表头；render* 读英文对象键。
+   在 loadAll 成功后、替换 DATA[key] 之前逐行 normalizeRow：已有英文键原样保留，中文键覆盖/补齐。 */
+var CN_MAP = {
+  market: {
+    '股票代码':'code','股票简称':'name','申万一级行业':'swIndustry','所属产业链':'chain','所属环节':'link',
+    '营业总收入':'revenue','营收同比':'revenueYoy','归母净利润':'netProfit','归母净利同比':'netProfitYoy',
+    '扣非净利润':'deductNetProfit','经营现金流净额':'ocf','加权平均ROE':'roe','毛利率':'grossMargin',
+    '披露日期':'discloseDate','数据来源':'source','数据时点':'asOf'
+  },
+  chain: {
+    '产业链':'chain','环节':'link','环节公司数':'companyCount','环节营收合计':'revenueSum','环节营收同比':'revenueYoy',
+    '环节归母净利合计':'netProfitSum','环节净利同比':'netProfitYoy','环节平均ROE':'roeAvg','环节平均毛利率':'grossMarginAvg',
+    '赚钱能力排名':'profitRank','代表公司':'leadCompanies','数据来源':'source','数据时点':'asOf'
+  },
+  growth: {
+    '股票代码':'code','股票简称':'name','所属产业链':'chain','所属环节':'link','申万一级行业':'swIndustry',
+    '营业总收入':'revenue','营收同比':'revenueYoy','归母净利润':'netProfit','归母净利同比':'netProfitYoy',
+    '加权平均ROE':'roe','双增强度':'growthScore','披露日期':'discloseDate','数据来源':'source','数据时点':'asOf'
+  },
+  compare: {
+    '股票代码':'code','股票简称':'name','所属产业链':'chain','所属环节':'link',
+    '营业总收入':'revenue','营收同比':'revenueYoy','归母净利润':'netProfit','归母净利同比':'netProfitYoy',
+    '加权平均ROE':'roe','毛利率':'grossMargin','环节内营收排名':'linkRevenueRank','环节内净利排名':'linkProfitRank',
+    '最新价':'price','涨跌幅':'changePercent','主力净流入':'mainNetFlow','5日主力净流入':'mainNetFlow5D',
+    '20日主力净流入':'mainNetFlow20D','行情日期':'quoteDate','技术指标数值':'techIndicators','技术面摘要':'techSignal',
+    '数据来源':'source','数据时点':'asOf'
+  },
+  watch: {
+    '股票代码':'code','股票简称':'name','所属产业链':'chain','所属环节':'link','披露状态':'discloseStatus',
+    '预告类型':'forecastType','预告净利下限':'forecastProfitMin','预告净利上限':'forecastProfitMax',
+    '预告净利同比下限':'forecastYoyMin','预告净利同比上限':'forecastYoyMax','预约披露日期':'scheduledDate',
+    '观察统计时点':'statDate','是否已入正式榜':'enteredOfficial','备注':'note','数据来源':'source','数据时点':'asOf'
+  },
+  macro: {
+    '行业或指标名称':'name','层级':'level','关联产业链':'chain','营收同比':'revenueYoy','净利同比':'netProfitYoy',
+    '平均ROE':'roeAvg','ROE口径':'roeCaliber','景气度标签':'prosperity','宏观指标值':'macroValue',
+    '宏观指标单位':'macroUnit','对照说明':'compareNote','数据来源':'source','数据时点':'asOf',
+    '涨跌幅':'changePercent','换手率':'turnoverRate','近5日涨跌':'chg5d','近20日涨跌':'chg20d',
+    '年初至今':'chgYtd','主力净流入':'mainNetFlow','散户净流入':'retailNetFlow','行情时点':'quoteTime'
+  }
+};
+/* 中文布尔 → 布尔：true/false、1/0、是/否、Y/N，缺省 false */
+function toBoolLoose(v){
+  if(typeof v==='boolean') return v;
+  if(v===1||v==='1') return true;
+  if(v===0||v==='0') return false;
+  var s=String(v===null||v===undefined?'':v).trim().toLowerCase();
+  if(s==='是'||s==='true'||s==='yes'||s==='y') return true;
+  if(s==='否'||s==='false'||s==='no'||s==='n'||s==='') return false;
+  return false;
+}
+function normalizeRow(key,row){
+  if(!row || typeof row!=='object') return row;
+  var map=CN_MAP[key];
+  if(!map) return row;
+  var out={}, f, cn;
+  /* 已有英文键（及未知键）原样保留；中文键不直接透传 */
+  for(f in row) if(has(row,f) && !has(map,f)) out[f]=row[f];
+  /* 中文键覆盖/补齐到英文对象键 */
+  for(cn in map) if(has(map,cn) && has(row,cn)) out[map[cn]]=row[cn];
+  /* 布尔字段：中文「是/否」等统一转布尔 */
+  if(key==='watch' && has(out,'enteredOfficial')) out.enteredOfficial=toBoolLoose(out.enteredOfficial);
+  /* 资料库把「股票代码」推断为 number，在线模式补零回 6 位字符串 */
+  if((key==='market'||key==='growth'||key==='compare'||key==='watch') && out.code!==null && out.code!==undefined && out.code!==''){
+    out.code=('000000'+String(out.code)).slice(-6);
+  }
+  /* techIndicators 为 JSON 字符串，原样保留不解析 */
+  return out;
+}
+
+/* ---------- 各板块排序维度 ---------- */
+var SORT_OPTIONS = {
+  market: [{key:'netProfit',label:'归母净利'},{key:'revenue',label:'营业总收入'},{key:'roe',label:'加权平均ROE'},{key:'revenueYoy',label:'营收同比'},{key:'netProfitYoy',label:'归母净利同比'},{key:'netMargin',label:'净利率'}],
+  chain:  [{key:'profitRank',label:'赚钱能力排名'},{key:'netProfitSum',label:'环节归母净利合计'},{key:'revenueYoy',label:'环节营收同比'},{key:'roeAvg',label:'环节平均ROE'},{key:'companyCount',label:'环节公司数'},{key:'netProfitYoyMean',label:'净利同比均值'},{key:'avgNetMargin',label:'平均净利率'}],
+  growth: [{key:'growthScore',label:'双增强度'},{key:'revenueYoy',label:'营收同比'},{key:'netProfitYoy',label:'归母净利同比'},{key:'roe',label:'加权平均ROE'},{key:'netMargin',label:'净利率'}],
+  compare:[{key:'linkProfitRank',label:'环节内净利排名'},{key:'linkRevenueRank',label:'环节内营收排名'},{key:'revenue',label:'营业总收入'},{key:'netProfit',label:'归母净利润'},{key:'roe',label:'加权平均ROE'},{key:'netMargin',label:'净利率'}],
+  watch:  [{key:'scheduledDate',label:'预约披露日'},{key:'forecastYoyMax',label:'预告净利同比上限'},{key:'discloseStatus',label:'披露状态'}],
+  macro:  [{key:'netProfitYoy',label:'净利同比'},{key:'revenueYoy',label:'营收同比'},{key:'roeAvg',label:'平均ROE'},{key:'macroValue',label:'宏观指标值'}]
+};
+var DEFAULT_SORT = { market:'netProfit', chain:'profitRank', growth:'growthScore', compare:'linkProfitRank', watch:'scheduledDate', macro:'netProfitYoy' };
+var DEFAULT_DESC = { market:true, chain:false, growth:true, compare:false, watch:false, macro:true };
+var SORT_STATE = {};
+(function(){ for (var k in DEFAULT_SORT) if (Object.prototype.hasOwnProperty.call(DEFAULT_SORT,k)) SORT_STATE[k] = { key:DEFAULT_SORT[k], desc:DEFAULT_DESC[k] }; })();
+
+/* ---------- 全局状态 ---------- */
+var FILTER = { chain:'', link:'', board:'', keyword:'' };
+var ACTIVE = 'market';
+var SELECTED_COMPARE = {};
+
+/* ---------- 基础工具 ---------- */
+function $(id){ return document.getElementById(id); }
+function has(o,k){ return Object.prototype.hasOwnProperty.call(o,k); }
+function esc(s){ return String(s===null||s===undefined?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+/* 契约 v1.2：字符串单元格遇「待填」显示为「—/待填」，不参与数值比较 */
+function cellText(v){ return String(v==null?'':v)==='待填'?'&mdash;/待填':esc(v); }
+/* note 含「约值」时给数值加 ≈ 前缀 */
+function approxPrefix(r){ return (r && String(r.note||'').indexOf('约值')>=0)?'&asymp; ':''; }
+function isNum(v){ return v!==null&&v!==undefined&&v!==''&&String(v)!=='待填'&&!isNaN(Number(v)); }
+function fmtNum(v,d){ if(String(v==null?'':v)==='待填') return '&mdash;/待填'; if(!isNum(v)) return '&mdash;'; d=(d===undefined)?2:d; return Number(v).toFixed(d); }
+function fmtPct(v){
+  if(String(v==null?'':v)==='待填') return '<span class="flat">&mdash;/待填</span>';
+  if(!isNum(v)) return '<span class="flat">&mdash;</span>';
+  var n=Number(v), cls=n>0?'up':(n<0?'down':'flat'), sign=n>0?'+':'';
+  return '<span class="'+cls+'">'+sign+n.toFixed(2)+'%</span>';
+}
+function fmtMoney(v){
+  if(String(v==null?'':v)==='待填') return '&mdash;/待填';
+  if(!isNum(v)) return '&mdash;';
+  var n=Number(v), a=Math.abs(n);
+  if(a>=1e8) return (n/1e8).toFixed(2)+'亿';
+  if(a>=1e4) return (n/1e4).toFixed(2)+'万';
+  return String(n);
+}
+/* P0-2 派生指标：净利率 = 归母净利 / 营业总收入 × 100（缺失/0 分母返回 null，不填 0，不写入 DATA） */
+function netMargin(r){
+  if(!r) return null;
+  var np=r.netProfit, rv=r.revenue;
+  if(!isNum(np)||!isNum(rv)) return null;
+  var den=Number(rv);
+  if(den===0) return null;
+  return Number(np)/den*100;
+}
+/* 环节合计口径平均净利率 = 环节归母净利合计 / 环节营收合计 × 100 */
+function chainNetMargin(r){
+  if(!r) return null;
+  var np=r.netProfitSum, rv=r.revenueSum;
+  if(!isNum(np)||!isNum(rv)) return null;
+  var den=Number(rv);
+  if(den===0) return null;
+  return Number(np)/den*100;
+}
+/* 净利率为水平指标，不着涨红跌绿；空值显示 — */
+function fmtMarginVal(v){ return v===null?'&mdash;':fmtNum(v,2)+'%'; }
+/* 派生排序键取值，不修改原始 DATA 对象 */
+function derivedSortValue(r,k){
+  if(k==='netMargin') return netMargin(r);
+  if(k==='avgNetMargin') return chainNetMargin(r);
+  if(k==='netProfitYoyMean') return (r&&r.netProfitYoy!==undefined)?r.netProfitYoy:null;
+  return null;
+}
+function boardOf(code){
+  var c=String(code===null||code===undefined?'':code);
+  if(/^68[89]/.test(c)) return '科创板';
+  if(/^30[01]/.test(c)) return '创业板';
+  if(/^(60[01356]|00[0123])/.test(c)) return '主板';
+  if(/^(8|4|92)/.test(c)) return '北交所';
+  return '其他';
+}
+function field(row,names){
+  if(!row) return null;
+  for(var i=0;i<names.length;i++){ var v=row[names[i]]; if(v!==null&&v!==undefined&&v!=='') return v; }
+  return null;
+}
+/* 契约 v1.4 正式键（主别名），兼容旧别名 */
+var K_PRICE = ['price','latestPrice','lastPrice','closePrice','close'];
+var K_CHANGE = ['changePercent','changePct','pctChange','change_percent','chgPct','changeRate'];
+var K_TECH = ['techSignal','technical','techIndicator','signal','maSignal'];
+var K_INFLOW = ['mainNetFlow','MainNetFlow','mainNetFlow5D','MainNetFlow5D','mainNetFlow20D','MainNetFlow20D','mainNetInflow','mainForceNetInflow','mainCapitalNetInflow','capitalFlow','netInflow'];
+/* 主力净流入：返回 {v, key}，用于标注当日/5日/20日，避免周期歧义 */
+function inflowField(row){
+  for(var i=0;i<K_INFLOW.length;i++){ var v=row[K_INFLOW[i]]; if(v!==null&&v!==undefined&&v!=='') return {v:v,key:K_INFLOW[i]}; }
+  return {v:null,key:''};
+}
+function inflowPeriod(key){
+  if(key==='mainNetFlow5D'||key==='MainNetFlow5D') return '5日';
+  if(key==='mainNetFlow20D'||key==='MainNetFlow20D') return '20日';
+  if(key==='mainNetFlow'||key==='MainNetFlow') return '当日';
+  return '';
+}
+/* 行情相关键：缺 quoteDate（交易日）时不参与排序 */
+var QUOTE_KEYS = {price:1,latestPrice:1,changePercent:1,changePct:1,mainNetFlow:1,mainNetFlow5D:1,mainNetFlow20D:1,MainNetFlow:1,MainNetFlow5D:1,MainNetFlow20D:1};
+function sortMissing(row,key){
+  var v=row[key];
+  if(v===null||v===undefined||v===''||v==='待填') return true;
+  if(QUOTE_KEYS[key] && !row.quoteDate) return true;  /* v1.4：行情值缺交易日不参与排序 */
+  return false;
+}
+/* techIndicators：机器可读 JSON（macd/kdj/rsi/ma/boll），缺项 null；解析为可读 tooltip，前端仍展示 techSignal 摘要 */
+function techTip(raw){
+  if(raw===null||raw===undefined||raw==='') return '';
+  var obj=raw;
+  if(typeof raw==='string'){ try{ obj=JSON.parse(raw); }catch(e){ return String(raw); } }
+  if(!obj||typeof obj!=='object') return String(raw);
+  var groups=[['MACD','macd',['dif','dea','hist']],['KDJ','kdj',['k','d','j']],['RSI','rsi',['6','12','24']],['MA','ma',['5','10','20','60','120','250']],['BOLL','boll',['upper','mid','lower']]], parts=[], i, j, g, v, arr, k;
+  for(i=0;i<groups.length;i++){
+    g=groups[i]; v=obj[g[1]];
+    if(!v||typeof v!=='object') continue;
+    arr=[];
+    for(j=0;j<g[2].length;j++){ k=g[2][j]; if(v[k]!==null&&v[k]!==undefined&&v[k]!=='') arr.push(k+':'+v[k]); }
+    if(arr.length) parts.push(g[0]+'('+arr.join(',')+')');
+  }
+  return parts.join(' ');
+}
+/* ROE 口径短标记：table6 用（加权平均半年度未年化 / TTM滚动12个月），禁止与公司级加权 ROE 混排比较 */
+function roeCaliberShort(c){
+  if(c===null||c===undefined||c===''||c==='待填') return '';
+  if(String(c).indexOf('TTM')>=0) return 'TTM';
+  if(String(c).indexOf('加权平均半年度未年化')>=0) return '加权·未年化';
+  return String(c);
+}
+function boolTrue(v){ return v===true||String(v).toLowerCase()==='true'||v===1||v==='1'; }
+function tagMatch(val,target){
+  if(!target) return true;
+  var s=','+String(val===null||val===undefined?'':val)+',';
+  return s.indexOf(','+target+',')>=0;
+}
+
+/* ---------- 数据绑定单元格：写入时同时打两个 data-sp 标记 ---------- */
+function cell(dbId,html,cls,title){
+  var td=document.createElement('td');
+  td.setAttribute('data-sp-bindable','database');
+  td.setAttribute('data-sp-database-id',dbId);
+  if(cls) td.className=cls;
+  if(title) td.title=title;
+  td.innerHTML=html;
+  return td;
+}
+function emptyRow(tb,colspan,dbId,msg){
+  var tr=document.createElement('tr'), td=document.createElement('td');
+  td.colSpan=colspan; td.className='empty';
+  td.setAttribute('data-sp-bindable','database');
+  td.setAttribute('data-sp-database-id',dbId);
+  td.textContent=msg||'暂无符合条件的数据（可能为占位数据或该环节未披露）';
+  tr.appendChild(td); tb.appendChild(tr);
+}
+
+/* ---------- 筛选 / 排序 ---------- */
+function matchKeyword(r){
+  var kw=FILTER.keyword.toLowerCase();
+  if(!kw) return true;
+  for(var f in r){
+    if(!has(r,f)) continue;
+    var v=r[f];
+    if((typeof v==='string'||typeof v==='number') && String(v).toLowerCase().indexOf(kw)>=0) return true;
+  }
+  return false;
+}
+function rowsFor(key){
+  var rows=DATA[key]||[], out=[], i, r;
+  for(i=0;i<rows.length;i++){
+    r=rows[i];
+    if(FILTER.chain && !tagMatch(r.chain,FILTER.chain)) continue;
+    if(FILTER.link && !tagMatch(r.link,FILTER.link)) continue;
+    if(FILTER.board && r.code && boardOf(r.code)!==FILTER.board) continue;
+    if(!matchKeyword(r)) continue;
+    out.push(r);
+  }
+  return out;
+}
+function sortRows(key,rows){
+  var st=SORT_STATE[key], k=st.key, desc=st.desc, copy=rows.slice();
+  var derived=(k==='netMargin'||k==='avgNetMargin'||k==='netProfitYoyMean');
+  copy.sort(function(a,b){
+    var va=derived?derivedSortValue(a,k):a[k], vb=derived?derivedSortValue(b,k):b[k], cmp;
+    /* 契约 v1.2：待填/空值排序沉底；v1.4：行情值缺 quoteDate 不参与排序 */
+    var ma=derived?(va===null||va===undefined):sortMissing(a,k);
+    var mb=derived?(vb===null||vb===undefined):sortMissing(b,k);
+    if(ma&&mb) return 0;
+    if(ma) return 1;
+    if(mb) return -1;
+    if(isNum(va)&&isNum(vb)) cmp=Number(va)-Number(vb);
+    else if(isNum(va)) cmp=-1;
+    else if(isNum(vb)) cmp=1;
+    else cmp=String(va).localeCompare(String(vb));
+    return desc?-cmp:cmp;
+  });
+  return copy;
+}
+
+/* ---------- 联动下拉 ---------- */
+function uniqueTags(keys,fieldName,onlyChain){
+  var set={}, i, j, k, rows, r, parts, p;
+  for(i=0;i<keys.length;i++){
+    rows=DATA[keys[i]]||[];
+    for(j=0;j<rows.length;j++){
+      r=rows[j];
+      if(onlyChain && FILTER.chain && !tagMatch(r.chain,FILTER.chain)) continue;
+      var raw=r[fieldName]; if(raw===null||raw===undefined||raw==='') continue;
+      parts=String(raw).split(',');
+      for(k=0;k<parts.length;k++){ p=parts[k].trim(); if(p) set[p]=1; }
+    }
+  }
+  var arr=[]; for(var x in set) if(has(set,x)) arr.push(x);
+  arr.sort(function(a,b){ return a.localeCompare(b); });
+  return arr;
+}
+function fillSelect(sel,items,allLabel){
+  var cur=sel.value;
+  sel.innerHTML='';
+  var o0=document.createElement('option'); o0.value=''; o0.textContent=allLabel; sel.appendChild(o0);
+  for(var i=0;i<items.length;i++){
+    var o=document.createElement('option'); o.value=items[i]; o.textContent=items[i]; sel.appendChild(o);
+  }
+  var found=false; for(var j=0;j<items.length;j++) if(items[j]===cur) found=true;
+  sel.value=found?cur:'';
+}
+function refreshChainOptions(){
+  fillSelect($('f-chain'), uniqueTags(['market','chain','growth','compare','watch','macro'],'chain',false),'全部产业链');
+  FILTER.chain=$('f-chain').value;
+  refreshLinkOptions();
+}
+function refreshLinkOptions(){
+  fillSelect($('f-link'), uniqueTags(['market','chain','growth','compare','watch','macro'],'link',true),'全部环节');
+  FILTER.link=$('f-link').value;
+}
+function refreshSortOptions(){
+  var opts=SORT_OPTIONS[ACTIVE]||[], sel=$('f-sort'), i, o;
+  sel.innerHTML='';
+  for(i=0;i<opts.length;i++){ o=document.createElement('option'); o.value=opts[i].key; o.textContent=opts[i].label; sel.appendChild(o); }
+  var st=SORT_STATE[ACTIVE];
+  sel.value=st.key;
+  $('btn-order').textContent=st.desc?'降序 \u2193':'升序 \u2191';
+}
+
+/* ---------- 板块① 全市场总榜 ---------- */
+function renderMarket(){
+  var rows=sortRows('market',rowsFor('market')), tb=$('t-market').querySelector('tbody'), i, r, tr;
+  tb.innerHTML='';
+  if(!rows.length){ emptyRow(tb,11,DB.market); return; }
+  for(i=0;i<rows.length;i++){
+    r=rows[i]; tr=document.createElement('tr');
+    tr.appendChild(cell(DB.market,String(i+1)));
+    tr.appendChild(cell(DB.market,cellText(r.code)));
+    tr.appendChild(cell(DB.market,cellText(r.name)));
+    tr.appendChild(cell(DB.market,cellText(r.swIndustry)));
+    tr.appendChild(cell(DB.market,fmtMoney(r.revenue)));
+    tr.appendChild(cell(DB.market,fmtPct(r.revenueYoy)));
+    tr.appendChild(cell(DB.market,fmtMoney(r.netProfit)));
+    tr.appendChild(cell(DB.market,fmtPct(r.netProfitYoy)));
+    tr.appendChild(cell(DB.market,fmtMarginVal(netMargin(r)),'','归母净利 / 营业总收入'));
+    tr.appendChild(cell(DB.market,fmtNum(r.roe,2)==='&mdash;'?'&mdash;':(fmtNum(r.roe,2)==='&mdash;/待填'?'&mdash;/待填':fmtNum(r.roe,2)+'%')));
+    tr.appendChild(cell(DB.market,cellText(r.source?r.source+' \u00b7 ':'')+cellText(r.asOf)));
+    tb.appendChild(tr);
+  }
+}
+
+/* ---------- 板块② 产业链环节赚钱榜 ---------- */
+function renderChain(){
+  var rows=sortRows('chain',rowsFor('chain')), tb=$('t-chain').querySelector('tbody'), i, r, tr;
+  tb.innerHTML='';
+  if(!rows.length){ emptyRow(tb,12,DB.chain); return; }
+  for(i=0;i<rows.length;i++){
+    r=rows[i]; tr=document.createElement('tr');
+    tr.appendChild(cell(DB.chain,cellText(r.chain)));
+    tr.appendChild(cell(DB.chain,cellText(r.link)));
+    tr.appendChild(cell(DB.chain,isNum(r.companyCount)?String(r.companyCount):'&mdash;'));
+    tr.appendChild(cell(DB.chain,fmtMoney(r.revenueSum)));
+    tr.appendChild(cell(DB.chain,fmtPct(r.revenueYoy)));
+    tr.appendChild(cell(DB.chain,fmtMoney(r.netProfitSum)));
+    tr.appendChild(cell(DB.chain,fmtPct(r.netProfitYoy)));
+    tr.appendChild(cell(DB.chain,fmtPct(r.netProfitYoy),'','环节合计同比'));
+    tr.appendChild(cell(DB.chain,fmtMarginVal(chainNetMargin(r)),'','环节归母净利合计 / 环节营收合计'));
+    tr.appendChild(cell(DB.chain,isNum(r.roeAvg)?fmtNum(r.roeAvg,2)+'%':'&mdash;'));
+    tr.appendChild(cell(DB.chain,isNum(r.profitRank)?String(r.profitRank):'&mdash;'));
+    tr.appendChild(cell(DB.chain,cellText(r.leadCompanies)));
+    tb.appendChild(tr);
+  }
+}
+
+/* ---------- 板块③ 双增公司榜 ---------- */
+function renderGrowth(){
+  var rows=sortRows('growth',rowsFor('growth')), tb=$('t-growth').querySelector('tbody'), i, r, tr;
+  tb.innerHTML='';
+  if(!rows.length){ emptyRow(tb,13,DB.growth); return; }
+  for(i=0;i<rows.length;i++){
+    r=rows[i]; tr=document.createElement('tr');
+    tr.appendChild(cell(DB.growth,String(i+1)));
+    tr.appendChild(cell(DB.growth,cellText(r.code)));
+    tr.appendChild(cell(DB.growth,cellText(r.name)));
+    tr.appendChild(cell(DB.growth,cellText(r.chain)));
+    tr.appendChild(cell(DB.growth,cellText(r.link)));
+    tr.appendChild(cell(DB.growth,fmtMoney(r.revenue)));
+    tr.appendChild(cell(DB.growth,fmtPct(r.revenueYoy)));
+    tr.appendChild(cell(DB.growth,fmtMoney(r.netProfit)));
+    tr.appendChild(cell(DB.growth,fmtPct(r.netProfitYoy)));
+    tr.appendChild(cell(DB.growth,fmtMarginVal(netMargin(r)),'','归母净利 / 营业总收入'));
+    tr.appendChild(cell(DB.growth,isNum(r.roe)?fmtNum(r.roe,2)+'%':'&mdash;'));
+    tr.appendChild(cell(DB.growth,isNum(r.growthScore)?fmtNum(r.growthScore,2):'&mdash;'));
+    tr.appendChild(cell(DB.growth,cellText(r.discloseDate)));
+    tb.appendChild(tr);
+  }
+}
+
+/* ---------- 板块④ 产业链内公司对比 ---------- */
+function selectedCount(){ var c=0,k; for(k in SELECTED_COMPARE) if(has(SELECTED_COMPARE,k)&&SELECTED_COMPARE[k]) c++; return c; }
+function renderCompare(){
+  var rows=sortRows('compare',rowsFor('compare')), tb=$('t-compare').querySelector('tbody'), i, r, tr;
+  // 清理已勾选但已不在可见集合中的项
+  var visible={}; for(i=0;i<rows.length;i++) visible[String(rows[i].code)]=1;
+  for(var ck in SELECTED_COMPARE) if(has(SELECTED_COMPARE,ck)&&!visible[ck]) delete SELECTED_COMPARE[ck];
+  tb.innerHTML='';
+  if(!rows.length){ emptyRow(tb,17,DB.compare); renderCompareBox(rows); return; }
+  for(i=0;i<rows.length;i++){
+    r=rows[i]; tr=document.createElement('tr');
+    var code=String(r.code);
+    if(SELECTED_COMPARE[code]) tr.className='hl';
+    var cb=document.createElement('input');
+    cb.type='checkbox'; cb.className='chk'; cb.checked=!!SELECTED_COMPARE[code];
+    cb.setAttribute('data-code',code);
+    cb.title='勾选加入对比（最多 4 家）';
+    (function(box,c){
+      box.addEventListener('change',function(){
+        if(box.checked){
+          if(selectedCount()>=4){ box.checked=false; alert('最多勾选 4 家公司进行对比'); return; }
+          SELECTED_COMPARE[c]=true;
+        } else { delete SELECTED_COMPARE[c]; }
+        renderCompare();
+      });
+    })(cb,code);
+    var td0=cell(DB.compare,''); td0.appendChild(cb); tr.appendChild(td0);
+    tr.appendChild(cell(DB.compare,cellText(r.code)));
+    tr.appendChild(cell(DB.compare,cellText(r.name)));
+    tr.appendChild(cell(DB.compare,cellText(r.link)));
+    tr.appendChild(cell(DB.compare,fmtMoney(r.revenue)));
+    tr.appendChild(cell(DB.compare,fmtPct(r.revenueYoy)));
+    tr.appendChild(cell(DB.compare,fmtMoney(r.netProfit)));
+    tr.appendChild(cell(DB.compare,fmtPct(r.netProfitYoy)));
+    tr.appendChild(cell(DB.compare,isNum(r.roe)?fmtNum(r.roe,2)+'%':'&mdash;'));
+    tr.appendChild(cell(DB.compare,isNum(r.grossMargin)?fmtNum(r.grossMargin,2)+'%':'&mdash;'));
+    tr.appendChild(cell(DB.compare,fmtMarginVal(netMargin(r)),'','归母净利 / 营业总收入'));
+    /* v1.4：正式键 price/changePercent/mainNetFlow 优先，兼容旧别名；带 quoteDate 标注 */
+    var price=field(r,K_PRICE), chg=field(r,K_CHANGE);
+    var qd=(r.quoteDate?('交易日 '+cellText(r.quoteDate)):'行情日期未提供');
+    tr.appendChild(cell(DB.compare,isNum(price)?fmtNum(price,2):'&mdash;','',qd));
+    tr.appendChild(cell(DB.compare,fmtPct(chg),'',qd));
+    var inf=inflowField(r), per=inflowPeriod(inf.key);
+    tr.appendChild(cell(DB.compare,isNum(inf.v)?fmtMoney(inf.v)+(per?'<sup class="cal">'+per+'</sup>':''):'&mdash;','',isNum(inf.v)?('主力净流入 '+per+'（元）· '+qd):''));
+    tr.appendChild(cell(DB.compare,cellText(r.quoteDate)));
+    var techRaw=field(r,K_TECH), indTip=techTip(field(r,['techIndicators']));
+    tr.appendChild(cell(DB.compare,cellText(techRaw),'',indTip?('技术指标数值：'+indTip):'技术指标摘要（客观描述，非买卖建议）'));
+    tr.appendChild(cell(DB.compare,isNum(r.linkProfitRank)?String(r.linkProfitRank):'&mdash;'));
+    tb.appendChild(tr);
+  }
+  renderCompareBox(rows);
+}
+function renderCompareBox(rows){
+  var box=$('cmp-box'), info=$('cmp-selected'), codes=[], k, i;
+  for(k in SELECTED_COMPARE) if(has(SELECTED_COMPARE,k)&&SELECTED_COMPARE[k]) codes.push(k);
+  box.innerHTML='';
+  info.textContent=codes.length?('已选择 '+codes.length+' 家（'+(codes.length<2?'再选 1 家即可对比':'可并排比较')+'）'):'未选择对比公司（最多 4 家）';
+  if(codes.length<2){ return; }
+  var chosen=[], map={};
+  for(i=0;i<rows.length;i++){ map[String(rows[i].code)]=rows[i]; }
+  for(i=0;i<codes.length;i++) if(map[codes[i]]) chosen.push(map[codes[i]]);
+  if(chosen.length<2) return;
+  var metrics=[
+    {label:'营收',get:function(r){return fmtMoney(r.revenue);}},
+    {label:'营收同比',get:function(r){return fmtPct(r.revenueYoy);}},
+    {label:'归母净利',get:function(r){return fmtMoney(r.netProfit);}},
+    {label:'净利同比',get:function(r){return fmtPct(r.netProfitYoy);}},
+    {label:'ROE',get:function(r){return isNum(r.roe)?fmtNum(r.roe,2)+'%':'&mdash;';}},
+    {label:'毛利率',get:function(r){return isNum(r.grossMargin)?fmtNum(r.grossMargin,2)+'%':'&mdash;';}},
+    {label:'最新价',get:function(r){var p=field(r,K_PRICE);return isNum(p)?fmtNum(p,2):'&mdash;';}},
+    {label:'涨跌幅',get:function(r){return fmtPct(field(r,K_CHANGE));}},
+    {label:'主力净流入',get:function(r){var inf=inflowField(r),per=inflowPeriod(inf.key);return isNum(inf.v)?fmtMoney(inf.v)+(per?'<sup class="cal">'+per+'</sup>':''):'&mdash;';}},
+    {label:'行情日期',get:function(r){return cellText(r.quoteDate);}},
+    {label:'技术指标',get:function(r){return cellText(field(r,K_TECH));}}
+  ];
+  var h='<div class="scroll"><table><thead><tr><th>指标</th>';
+  for(i=0;i<chosen.length;i++) h+='<th>'+esc(chosen[i].name)+' ('+esc(chosen[i].code)+')</th>';
+  h+='</tr></thead><tbody>';
+  for(i=0;i<metrics.length;i++){
+    h+='<tr><th>'+metrics[i].label+'</th>';
+    for(var j=0;j<chosen.length;j++) h+='<td>'+metrics[i].get(chosen[j])+'</td>';
+    h+='</tr>';
+  }
+  h+='</tbody></table></div>';
+  box.innerHTML=h;
+}
+
+/* ---------- 板块⑤ 观察区 ---------- */
+function renderWatch(){
+  var rows=sortRows('watch',rowsFor('watch')), tb=$('t-watch').querySelector('tbody'), i, r, tr;
+  /* 历史观察快照：统计时点取表内 statDate（如注入），缺省 2026-07-15 */
+  var all=DATA.watch||[], stat='2026-07-15';
+  for(i=0;i<all.length;i++){ if(all[i].statDate){ stat=String(all[i].statDate); break; } }
+  if($('watch-statdate')) $('watch-statdate').textContent=stat;
+  tb.innerHTML='';
+  if(!rows.length){
+    emptyRow(tb,10,DB.watch,'历史观察快照（统计时点 '+stat+'；H1 披露已于 8/31 收官）：当前无符合筛选条件的观察项，暂无「待披露未预告」活样本。');
+    return;
+  }
+  for(i=0;i<rows.length;i++){
+    r=rows[i]; tr=document.createElement('tr');
+    tr.appendChild(cell(DB.watch,cellText(r.code)));
+    tr.appendChild(cell(DB.watch,cellText(r.name)));
+    tr.appendChild(cell(DB.watch,cellText(r.chain)));
+    tr.appendChild(cell(DB.watch,cellText(r.link)));
+    var st=cellText(r.discloseStatus||'&mdash;');
+    tr.appendChild(cell(DB.watch,'<span class="pill '+(r.discloseStatus==='已披露正式半年报'?'done':(r.discloseStatus==='已发业绩预告'?'warn':'info'))+'">'+st+'</span>'));
+    /* 契约 v1.3 §1 表5 字段时间语义：以 discloseStatus 判断，预告信息与「已转正入榜」互不排斥。
+       已发业绩预告（含 9 家历史快照 enteredOfficial=true）：forecastType/预告值保留并正常显示；
+       已披露正式半年报（无预告可留）：forecastType 为空显示 —，历史值取 note。 */
+    var isForecast=(r.discloseStatus==='已发业绩预告');
+    var ftEmpty=(r.forecastType===null||r.forecastType===undefined||r.forecastType==='');
+    var ft=(isForecast&&!ftEmpty)?cellText(r.forecastType):'&mdash;';
+    tr.appendChild(cell(DB.watch,ft));
+    var lo=r.forecastYoyMin, hi=r.forecastYoyMax, ap=approxPrefix(r);
+    var range;
+    if(isForecast && (isNum(lo)||isNum(hi))){ range=ap+fmtPct(lo)+' ~ '+fmtPct(hi); }
+    else if(isForecast && r.note){ range=ap+'&mdash;（历史预告见备注）'; }
+    else if(!isForecast && r.note){ range=ap+'&mdash;（历史值见备注）'; }
+    else { range='&mdash;'; }
+    tr.appendChild(cell(DB.watch,range));
+    tr.appendChild(cell(DB.watch,cellText(r.scheduledDate)));
+    /* 「已转正入榜」独立叠加，不因 forecastType 有值/无值而互斥 */
+    tr.appendChild(cell(DB.watch,boolTrue(r.enteredOfficial)?'<span class="pill done">已转正入榜</span>':'<span class="pill info">观察中</span>'));
+    tr.appendChild(cell(DB.watch,cellText(r.note)));
+    tb.appendChild(tr);
+  }
+}
+
+/* ---------- 板块⑥ 宏观行业对照 ---------- */
+function barHtml(v,max){
+  if(String(v==null?'':v)==='待填') return '<span class="flat">&mdash;/待填</span>';
+  if(!isNum(v)) return '<span class="flat">&mdash;</span>';
+  var n=Number(v), w=max>0?Math.min(Math.abs(n)/max*100,100):0;
+  var color=n>0?'#c0392b':(n<0?'#159957':'#9aa1ab');
+  return '<div class="minibar"><i style="width:'+w.toFixed(1)+'%;background:'+color+'"></i></div>'+fmtPct(v);
+}
+/* 指数行情速览：表6 中 level==='指数行情' 的记录，盘中快照；空值一律显示 —，不填 0、不编造 */
+function renderIndexQuote(){
+  var tb=$('t-index-quote').querySelector('tbody'), all=DATA.macro||[], rows=[], i, r, tr;
+  for(i=0;i<all.length;i++){ if(all[i].level==='指数行情') rows.push(all[i]); }
+  tb.innerHTML='';
+  if(!rows.length){ emptyRow(tb,10,DB.macro,'暂无指数行情数据（2026-11-18 09:56 盘中快照）；行情数据接入后将自动展示。'); return; }
+  for(i=0;i<rows.length;i++){
+    r=rows[i]; tr=document.createElement('tr');
+    tr.appendChild(cell(DB.macro,cellText(r.name)));
+    tr.appendChild(cell(DB.macro,fmtNum(r.macroValue,2)));
+    tr.appendChild(cell(DB.macro,fmtPct(r.changePercent)));
+    tr.appendChild(cell(DB.macro,isNum(r.turnoverRate)?fmtNum(r.turnoverRate,2)+'%':'&mdash;'));
+    tr.appendChild(cell(DB.macro,fmtPct(r.chg5d)));
+    tr.appendChild(cell(DB.macro,fmtPct(r.chg20d)));
+    tr.appendChild(cell(DB.macro,fmtPct(r.chgYtd)));
+    tr.appendChild(cell(DB.macro,fmtMoney(r.mainNetFlow)));
+    tr.appendChild(cell(DB.macro,fmtMoney(r.retailNetFlow)));
+    tr.appendChild(cell(DB.macro,cellText(r.quoteTime),'',r.quoteTime?'行情时点 '+String(r.quoteTime):''));
+    tb.appendChild(tr);
+  }
+}
+function renderMacro(){
+  renderIndexQuote();
+  var all=DATA.macro||[], cards=[], i, r;
+  for(i=0;i<all.length;i++){ r=all[i]; if(r.level==='宏观指标'&&matchKeyword(r)) cards.push(r); }
+  var cbox=$('macro-cards'); cbox.innerHTML='';
+  if(!cards.length){
+    var cd=document.createElement('div'); cd.className='mcard'; cd.setAttribute('data-sp-bindable','database'); cd.setAttribute('data-sp-database-id',DB.macro);
+    cd.innerHTML='<div class="label">宏观指标卡</div><div class="val">&mdash;</div><div class="note">暂无宏观指标数据</div>'; cbox.appendChild(cd);
+  } else {
+    for(i=0;i<cards.length;i++){
+      r=cards[i];
+      var card=document.createElement('div'); card.className='mcard';
+      card.setAttribute('data-sp-bindable','database'); card.setAttribute('data-sp-database-id',DB.macro);
+      var val=isNum(r.macroValue)?approxPrefix(r)+fmtNum(r.macroValue,2)+' '+esc(r.macroUnit||''):cellText(r.macroValue);
+      card.innerHTML='<div class="label">'+cellText(r.name)+'</div><div class="val '+((Number(r.macroValue)>0)?'up':((Number(r.macroValue)<0)?'down':''))+'">'+val+'</div><div class="note">'+cellText(r.compareNote||r.prosperity||'')+'</div>';
+      cbox.appendChild(card);
+    }
+  }
+  var base=rowsFor('macro'), rows=[], max=0;
+  for(i=0;i<base.length;i++){ if(base[i].level!=='宏观指标'){ rows.push(base[i]); var nv=isNum(base[i].netProfitYoy)?Math.abs(Number(base[i].netProfitYoy)):0; if(nv>max) max=nv; } }
+  rows=sortRows('macro',rows);
+  var tb=$('t-macro').querySelector('tbody'); tb.innerHTML='';
+  if(!rows.length){ emptyRow(tb,8,DB.macro); return; }
+  for(i=0;i<rows.length;i++){
+    r=rows[i]; tr=document.createElement('tr');
+    tr.appendChild(cell(DB.macro,cellText(r.name)));
+    tr.appendChild(cell(DB.macro,cellText(r.level)));
+    tr.appendChild(cell(DB.macro,cellText(r.chain)));
+    tr.appendChild(cell(DB.macro,barHtml(r.revenueYoy,max)));
+    tr.appendChild(cell(DB.macro,barHtml(r.netProfitYoy,max)));
+    /* 契约 v1.2：行业ROE来自 roeTTM，须带口径标记，禁止与公司级加权半年度ROE混排比较 */
+    var roeCal=roeCaliberShort(r.roeCaliber);
+    var roeHtml=isNum(r.roeAvg)?fmtNum(r.roeAvg,2)+'%':'&mdash;';
+    if(roeCal) roeHtml+='<sup class="cal" title="'+esc(r.roeCaliber)+'">'+esc(roeCal)+'</sup>';
+    tr.appendChild(cell(DB.macro,roeHtml,'','ROE口径：'+(r.roeCaliber||'未标注')+'；公司级ROE为加权平均半年度未年化，不可直接比较'));
+    tr.appendChild(cell(DB.macro,cellText(r.prosperity)));
+    tr.appendChild(cell(DB.macro,cellText(r.compareNote)));
+    tb.appendChild(tr);
+  }
+}
+
+/* ---------- 统一渲染 ---------- */
+function renderSection(key){
+  if(key==='market') renderMarket();
+  else if(key==='chain') renderChain();
+  else if(key==='growth') renderGrowth();
+  else if(key==='compare') renderCompare();
+  else if(key==='watch') renderWatch();
+  else if(key==='macro') renderMacro();
+}
+/* ---------- P0-1 顶部 KPI 总览：全部由内存 DATA 实时派生，SDK 更新后随之刷新 ---------- */
+function renderKPI(){
+  var mk=DATA.market||[], gr=DATA.growth||[], i, r, rev=0, np=0, hasRev=false, hasNp=false;
+  for(i=0;i<mk.length;i++){
+    r=mk[i];
+    if(isNum(r.revenue)){ rev+=Number(r.revenue); hasRev=true; }
+    if(isNum(r.netProfit)){ np+=Number(r.netProfit); hasNp=true; }
+  }
+  $('kpi-count').textContent=String(mk.length);
+  $('kpi-sample').textContent='2026H1 全市场';
+  $('kpi-rev').textContent=hasRev?(rev/1e8).toFixed(2)+'亿':'\u2014';
+  $('kpi-np').textContent=hasNp?(np/1e8).toFixed(2)+'亿':'\u2014';
+  $('kpi-double').textContent=String(gr.length);
+  /* 两榜样本池不同（总榜=营收头部，双增榜=全市场双增扫描），不相除；改用交集家数，口径自洽不误导 */
+  var mkCodes={}, overlap=0;
+  for(i=0;i<mk.length;i++) mkCodes[String(mk[i].code)]=1;
+  for(i=0;i<gr.length;i++) if(mkCodes[String(gr[i].code)]) overlap++;
+  $('kpi-ratio').textContent=String(overlap);
+  $('kpi-asof').textContent='数据时点 2026-11-18 \u00b7 2026H1 累计';
+}
+function renderAll(){
+  for(var k in SORT_STATE) if(has(SORT_STATE,k)) renderSection(k);
+  var total=0, kk;
+  for(kk in SORT_STATE) if(has(SORT_STATE,kk)) total+=(DATA[kk]||[]).length;
+  $('visible-count').textContent='内存记录合计 '+total+' 条 · 当前板块可见 '+(sortRows(ACTIVE,rowsFor(ACTIVE))).length+' 条';
+  renderKPI();
+}
+function sortBy(section,key){
+  var st=SORT_STATE[section];
+  if(st.key===key) st.desc=!st.desc;
+  else { st.key=key; st.desc=(DEFAULT_DESC[section]!==undefined?DEFAULT_DESC[section]:true); }
+  ACTIVE=section;
+  setActiveNav(section);
+  refreshSortOptions();
+  renderSection(section);
+  $('visible-count').textContent='当前板块可见 '+(sortRows(ACTIVE,rowsFor(ACTIVE))).length+' 条';
+}
+function setActiveNav(section){
+  var links=$('topnav').querySelectorAll('a'), i;
+  for(i=0;i<links.length;i++) links[i].className=(links[i].getAttribute('data-section')===section)?'on':'';
+}
+
+/* ---------- CSV 导出（UTF-8 BOM + RFC4180 转义） ---------- */
+function csvEsc(v){
+  if(v===null||v===undefined) return '';
+  var s=String(v);
+  return /[",\n\r]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;
+}
+function exportCSV(section){
+  var rows=sortRows(section,rowsFor(section)), hs=HEADERS[section]||[], lines=[], i, j, vals, r;
+  lines.push((function(){ var a=[]; for(j=0;j<hs.length;j++) a.push(csvEsc(hs[j].label)); return a.join(','); })());
+  for(i=0;i<rows.length;i++){
+    r=rows[i]; vals=[];
+    for(j=0;j<hs.length;j++){
+      var key=hs[j].key, v=r[key];
+      if(section==='compare'){
+        if(key==='price') v=field(r,K_PRICE);
+        else if(key==='changePercent') v=field(r,K_CHANGE);
+        else if(key==='mainNetFlow') v=inflowField(r).v;
+        else if(key==='mainNetFlow5D') v=field(r,['mainNetFlow5D','MainNetFlow5D']);
+        else if(key==='mainNetFlow20D') v=field(r,['mainNetFlow20D','MainNetFlow20D']);
+        else if(key==='techSignal') v=field(r,K_TECH);
+        /* quoteDate / techIndicators 直接取原值 */
+      }
+      vals.push(csvEsc(v));
+    }
+    lines.push(vals.join(','));
+  }
+  try{
+    var blob=new Blob(['\uFEFF'+lines.join('\r\n')],{type:'text/csv;charset=utf-8;'});
+    var url=URL.createObjectURL(blob), a=document.createElement('a');
+    a.href=url; a.download=FILENAME[section]||('h1_2026_'+section+'.csv');
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); },1500);
+  }catch(e){ alert('导出失败：'+e.message); }
+}
+
+/* ---------- P0-3 导出全部六表：单文件多段，导出 DATA 当前内存全量（不经筛选） ---------- */
+function exportAllCSV(){
+  var keys=['market','chain','growth','compare','watch','macro'], names={
+    market:'表1 全市场正式半年报总榜',chain:'表2 产业链环节赚钱榜',growth:'表3 双增公司榜',
+    compare:'表4 产业链内公司对比',watch:'表5 业绩预告/待披露观察区',macro:'表6 宏观行业对照区'
+  };
+  var lines=[], i, j, m, k, h, rows, r, vals, key, v;
+  for(i=0;i<keys.length;i++){
+    k=keys[i];
+    if(i>0) lines.push('');
+    lines.push('【'+names[k]+'】');
+    h=HEADERS[k]||[]; vals=[];
+    for(j=0;j<h.length;j++) vals.push(csvEsc(h[j].label));
+    lines.push(vals.join(','));
+    rows=DATA[k]||[];
+    for(j=0;j<rows.length;j++){
+      r=rows[j]; vals=[];
+      for(m=0;m<h.length;m++){
+        key=h[m].key; v=r[key];
+        if(k==='compare'){
+          if(key==='price') v=field(r,K_PRICE);
+          else if(key==='changePercent') v=field(r,K_CHANGE);
+          else if(key==='mainNetFlow') v=inflowField(r).v;
+          else if(key==='mainNetFlow5D') v=field(r,['mainNetFlow5D','MainNetFlow5D']);
+          else if(key==='mainNetFlow20D') v=field(r,['mainNetFlow20D','MainNetFlow20D']);
+          else if(key==='techSignal') v=field(r,K_TECH);
+        }
+        vals.push(csvEsc(v));
+      }
+      lines.push(vals.join(','));
+    }
+  }
+  try{
+    var blob=new Blob(['\uFEFF'+lines.join('\r\n')],{type:'text/csv;charset=utf-8;'});
+    var url=URL.createObjectURL(blob), a=document.createElement('a');
+    a.href=url; a.download='h1_2026_all_data.csv';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); },1500);
+  }catch(e){ alert('导出失败：'+e.message); }
+}
+
+/* ---------- 数据来源弹窗 ---------- */
+function showSources(){
+  var keys=['market','chain','growth','compare','watch','macro'], names={
+    market:'表1 全市场正式半年报总榜',chain:'表2 产业链环节赚钱榜',growth:'表3 双增公司榜',
+    compare:'表4 产业链内公司对比',watch:'表5 业绩预告/待披露观察区',macro:'表6 宏观行业对照区'
+  };
+  var h='<div>统一口径：报告期 <b>2026H1 累计（1&ndash;6 月，非单季、非年化）</b>；营收=营业总收入；净利=归母净利润；ROE=加权平均（半年度未年化）；同比基准 2025H1（正红负绿）。</div>';
+  h+='<div style="margin-top:6px">数据时点统一为 <b>2026-11-18</b>（研究整理日）。允许来源：Wind / iFinD / 东方财富 / WeStock 工具返回；宏观行业对照区另含官方机构来源（国家统计局 / 海关总署 / 央行 等）。行业 ROE 口径见板块⑥逐行标记（加权·未年化 或 TTM滚动12个月），不与公司级加权 ROE 混排比较；观察区为历史快照（统计时点 2026-07-15）。板块④行情字段：最新价 price、涨跌幅 changePercent、主力净流入 mainNetFlow(当日)/5D/20D，均带交易日 quoteDate（与 asOf 2026-11-18 区分），缺交易日者不参与排序；技术指标 techSignal 为客观文字摘要（非买卖建议），techIndicators 为机器可读数值 JSON，缺项 null。</div>';
+  h+='<h4>各表来源与时点</h4><table><thead><tr><th>数据表</th><th>文件</th><th>出现来源（当前数据）</th><th>数据时点</th><th>记录数</th></tr></thead><tbody>';
+  for(var i=0;i<keys.length;i++){
+    var k=keys[i], rows=DATA[k]||[], srcs={}, j, asofs={}, asof='';
+    for(j=0;j<rows.length;j++){
+      var parts=String(rows[j].source||'').split(',');
+      for(var p=0;p<parts.length;p++){ var s=parts[p].trim(); if(s) srcs[s]=1; }
+      if(rows[j].asOf) asofs[String(rows[j].asOf)]=1;
+    }
+    var sl=[]; for(var x in srcs) if(has(srcs,x)) sl.push(x);
+    var al=[]; for(var y in asofs) if(has(asofs,y)) al.push(y);
+    h+='<tr><td>'+names[k]+'</td><td>'+FILENAME[k]+'</td><td>'+esc(sl.length?sl.join('、'):'&mdash;')+'</td><td>'+esc(al.length?al.join('、'):'2026-11-18')+'</td><td>'+rows.length+'</td></tr>';
+  }
+  h+='</tbody></table>';
+  h+='<h4>说明</h4><div>来源为估算/计算值时须在备注中标注；占位数据一律写「待填」，不填 0 或编造数字。页面底部固定免责声明，非投资建议。</div>';
+  $('source-body').innerHTML=h;
+  $('source-overlay').classList.add('open');
+}
+
+/* ---------- 数据源徽标 ---------- */
+function setMode(mode){
+  var b=$('mode-badge'), s=$('sync-status'), txt, cls, st, sc;
+  if(mode==='sdk'){ cls='mode-badge sdk'; txt='实时资料库'; st='● 已连接在线数据表（实时）'; sc='sync-status sdk'; }
+  else if(mode==='mixed'){ cls='mode-badge mixed'; txt='混合模式（部分实时 / 部分快照）'; st='● 部分在线数据表 / 部分快照'; sc='sync-status mixed'; }
+  else { cls='mode-badge'; txt='离线静态快照模式'; st='● 内置快照数据（可同步在线数据表）'; sc='sync-status'; }
+  b.className=cls; b.textContent=txt;
+  if(s){ s.className=sc; s.textContent=st; }
+}
+
+/* ---------- SDK 分页加载 ----------
+   主路径（team-lead 指令）：SDK 查询参数 databaseId + pageSize=200 + startCursor，返回 results/nextCursor/hasMore
+   三重保护：guard<=100 / cursor 必须前进 / 非空页才继续；hasMore=false 即停。
+   兼容层③：若 SDK 返回 CONTRACT 形态（rows/hasMore，无 nextCursor），自动降级为 page 分页（page 从 1 起、末页不足即停）。 */
+function loadAll(databaseId){
+  return new Promise(function(resolve,reject){
+    var db=getSDK();
+    if(!db){ reject(new Error('SDK 数据库不可用')); return; }
+    var all=[], cursor=null, page=1, guard=0, mode='cursor', pageSize=200;
+    function step(){
+      if(guard>=100){ resolve(all); return; }             /* 保护①：最多 100 页 */
+      guard++;
+      DATABASE_ID=databaseId;
+      var sc=(mode==='cursor' && cursor!==null&&cursor!==undefined&&cursor!=='')?cursor:undefined;
+      var p;
+      try{ p=db.query({databaseId:DATABASE_ID,pageSize:pageSize,page:page,startCursor:sc}); }
+      catch(e){ reject(e); return; }
+      Promise.resolve(p).then(function(result){
+        if(!result){ resolve(all); return; }
+        var rows=Object.prototype.toString.call(result.results)==='[object Array]'?result.results:
+                 (Object.prototype.toString.call(result.rows)==='[object Array]'?result.rows:[]);
+        all=all.concat(rows);
+        if(!result.hasMore){ resolve(all); return; }        /* hasMore=false 即停 */
+        if(rows.length===0){ resolve(all); return; }        /* 保护③：非空页才继续 */
+        var next=result.nextCursor;
+        if(mode==='cursor' && next!==null&&next!==undefined&&next!==''&&next!==cursor){
+          cursor=next;                                      /* 保护②：cursor 必须前进 */
+          step(); return;
+        }
+        if(rows.length===pageSize){                         /* CONTRACT page 模式：末页不足即停 */
+          if(mode==='cursor') mode='page';
+          page++;
+          step(); return;
+        }
+        resolve(all);
+      })['catch'](function(e){ reject(e); });
+    }
+    step();
+  });
+}
+function initData(){
+  var keys=['market','chain','growth','compare','watch','macro'], db=getSDK();
+  if(!db){ setMode('offline'); renderAll(); return; }
+  var tasks=[], results={}, i;
+  for(i=0;i<keys.length;i++){
+    (function(k){
+      tasks.push(loadAll(dbIdFor(k)).then(function(rows){
+        /* SDK 在线模式：中文键记录归一化为英文对象键，与 SNAPSHOT 离线结构一致 */
+        var norm=[], m;
+        for(m=0;m<rows.length;m++) norm.push(normalizeRow(k, rows[m]));
+        DATA[k]=norm; results[k]='sdk';
+      })['catch'](function(e){
+        results[k]='snapshot';
+        if(window.console && console.warn) console.warn('['+k+'] SDK 查询失败，保留内嵌快照：',e);
+      }));
+    })(keys[i]);
+  }
+  Promise.all(tasks).then(function(){
+    var ok=0, j;
+    for(j=0;j<keys.length;j++) if(results[keys[j]]==='sdk') ok++;
+    if(ok===keys.length) setMode('sdk');
+    else if(ok>0) setMode('mixed');
+    else setMode('offline');
+    refreshChainOptions();
+    renderAll();
+  })['catch'](function(){ setMode('offline'); renderAll(); });
+}
+
+/* ---------- 事件绑定 ---------- */
+function bindEvents(){
+  var i;
+  var links=$('topnav').querySelectorAll('a');
+  for(i=0;i<links.length;i++){
+    (function(a){
+      a.addEventListener('click',function(){ ACTIVE=a.getAttribute('data-section'); setActiveNav(ACTIVE); refreshSortOptions(); });
+    })(links[i]);
+  }
+  $('f-chain').addEventListener('change',function(){ FILTER.chain=this.value; refreshLinkOptions(); FILTER.link=$('f-link').value; renderAll(); });
+  $('f-link').addEventListener('change',function(){ FILTER.link=this.value; renderAll(); });
+  $('f-board').addEventListener('change',function(){ FILTER.board=this.value; renderAll(); });
+  $('f-keyword').addEventListener('input',function(){ FILTER.keyword=this.value.trim(); renderAll(); });
+  $('f-sort').addEventListener('change',function(){ var st=SORT_STATE[ACTIVE]; st.key=this.value; renderSection(ACTIVE); });
+  $('btn-order').addEventListener('click',function(){ var st=SORT_STATE[ACTIVE]; st.desc=!st.desc; refreshSortOptions(); renderSection(ACTIVE); });
+  $('btn-reset').addEventListener('click',function(){
+    FILTER.chain=''; FILTER.link=''; FILTER.board=''; FILTER.keyword='';
+    $('f-board').value=''; $('f-keyword').value='';
+    var k; for(k in DEFAULT_SORT) if(has(DEFAULT_SORT,k)){ SORT_STATE[k]={ key:DEFAULT_SORT[k], desc:DEFAULT_DESC[k] }; }
+    SELECTED_COMPARE={};
+    refreshChainOptions(); refreshSortOptions(); renderAll();
+  });
+  $('btn-export').addEventListener('click',function(){ exportCSV(ACTIVE); });
+  $('btn-export-all').addEventListener('click',exportAllCSV);
+  $('btn-refresh').addEventListener('click',function(){
+    var btn=this;
+    if(!getSDK()){ alert('当前为离线快照模式，无法从在线数据表刷新'); return; }
+    btn.textContent='刷新中…'; btn.disabled=true;
+    initData();
+    setTimeout(function(){ btn.textContent='已刷新'; btn.disabled=false; },800);
+  });
+  var ones=document.querySelectorAll('.exp-one');
+  for(i=0;i<ones.length;i++){
+    (function(b){ b.addEventListener('click',function(){ exportCSV(b.getAttribute('data-section')); }); })(ones[i]);
+  }
+  $('btn-source').addEventListener('click',showSources);
+  $('btn-source-close').addEventListener('click',function(){ $('source-overlay').classList.remove('open'); });
+  $('source-overlay').addEventListener('click',function(e){ if(e.target===this) this.classList.remove('open'); });
+  var tables=document.querySelectorAll('table[data-section]');
+  for(i=0;i<tables.length;i++){
+    (function(tbl){
+      var sec=tbl.getAttribute('data-section'), ths=tbl.querySelectorAll('th[data-sort]'), j;
+      for(j=0;j<ths.length;j++){
+        (function(th){ th.style.cursor='pointer'; th.title='点击切换升序/降序'; th.addEventListener('click',function(){ sortBy(sec,th.getAttribute('data-sort')); }); })(ths[j]);
+      }
+    })(tables[i]);
+  }
+}
+
+/* ---------- 启动 ---------- */
+function init(){
+  bindEvents();
+  refreshChainOptions();
+  refreshSortOptions();
+  setMode('offline');
+  renderAll();
+  initData();
+}
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init);
+else init();
+</script>
+</body>
+</html>
