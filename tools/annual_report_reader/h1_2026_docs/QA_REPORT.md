@@ -195,3 +195,35 @@
 - 契约 v1.7，验收扩至 39 条（新增 38 资产负债率列、39 回填值与来源一致且不覆盖已有值）。
 
 > 增量验收人声明：P0/P1/P1财务 结论基于行为级实跑（renderKPI/exportAllCSV/renderIndexQuote/renderMarket/setMode）与逐字段核对，所有临时脚本已清理，无残留；口径标注缺口经 team-lead 裁决后已补齐并复验。
+
+---
+
+## 7. P2 增量验收（v1.9，2026-11-18）
+
+> 增量验收人：qa-tester。基准 CONTRACT v1.9 / 42 条。采用行为级实跑（vm 沙箱载入真实 SNAPSHOT + 图表函数段）+ 文件级核对，非静态扫描。
+
+### 7.1 P2-3 样本扩至 71 家（对应验收 40）
+
+| 验收项 | 结论 | 证据 |
+|---|---|---|
+| 样本 67→71 家 | PASS | SNAPSHOT.market 71 行，去重后仍 71（无重复 code） |
+| 4 家新增齐备 | PASS | 000977 浪潮信息 / 000938 紫光股份 / 603799 华友钴业 / 300014 亿纬锂能全部在榜，均为 2026H1 NeoData 真实财报数据 |
+| 字段契约 | PASS | 保持 17 列，按营收降序（843.79/635.16/555.68/456.91 亿插入正确位次） |
+| 四处同步 | PASS | CSV(71行) ↔ JSON(market 71) ↔ HTML SNAPSHOT(71) 逐字段一致；资料库 market 表重导 71 行后在线生效（内置快照已即时生效） |
+
+### 7.2 P2-2 自绘 SVG 微图表（对应验收 41–42）
+
+| 验收项 | 结论 | 证据 |
+|---|---|---|
+| 图表一：环节归母净利 | PASS | `renderLinkProfitChart` 取表2 chain 11 环节，实跑产出 11 个 `<rect>`、零轴发散条，盈利着红 #c0392b、亏损着绿 #159957，无 NaN，含「动力电池电芯」 |
+| 图表二：指数 YTD | PASS | `renderIndexYTDChart` 取表6 `level=指数行情` 7 条，产出 7 `<rect>`；7 指数 YTD 全负故无涨红（无 #c0392b），标注「非时间序列」避免误导 |
+| 图表三：MA 火花线 | PASS | `techMiniSvg` 取表4 `techIndicators.ma` 六周期 + 现价虚线，产出 6 `<circle>` + path + dasharray 虚线，嵌入板块④技术单元格 |
+| 零外部依赖 | PASS | 三图均内联 `<svg>` 自绘，无 ECharts/D3/CDN，符合 §0.1 图表硬约束 |
+| 幂等重建/降级 | PASS | `mountChart` 每次清空容器再建、无数据移除旧图；脏数据（null/非法 JSON/无 ma）返回空串不抛错；`injectMicroCharts` 无 DOM 不抛错 |
+| 行为级测试 | PASS | `node test_charts.tmp.js` → **24 PASS / 0 FAIL**；临时脚本已清理 |
+| 结构完整 | PASS | `node --check` exit=0；六函数（renderSection/KPI/All/sortBy/setActiveNav/init）各唯一无重复；`<script>/<body>/<html>` 闭合各 1；CRLF 1454/1454；ES5 无禁用特性 |
+
+### 7.3 回归确认
+
+- P0 五项（KPI/净利率/批量导出/在线刷新/状态条）、P1 行情增强（指数行情表）、P1 财务字段（资产负债率/现金流/毛利率）均无回归；六表 data-sp-database-id 未变、关联 6/6、免责声明原文一致。
+- **结论：v1.9 验收 42/42 条 PASS（本轮新增 40–42 三条全过），无 FAIL。**

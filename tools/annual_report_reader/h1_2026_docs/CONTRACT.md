@@ -1,6 +1,6 @@
 # 2026 A股半年报分析台 — 数据契约与验收标准（CONTRACT）
 
-> 版本：v1.7 ｜ 制定人：pm-architect ｜ 数据时点标注：2026-11-18
+> 版本：v1.9 ｜ 制定人：pm-architect ｜ 数据时点标注：2026-11-18
 > 适用范围：本文件是 finance-data / macro-data 采集、data-engineer 生成 CSV、frontend-dev 生成单文件 HTML、qa-tester 验收的**唯一字段契约**。任何字段增删改必须先改本文件并通知 team-lead。
 > 周期口径：全部数据为 **2026H1 半年度报告累计口径（2026-01-01 ~ 2026-06-30，非单季、非年化）**。
 
@@ -528,6 +528,13 @@ function exportCSV(rows, headerMap, filename) {
 - [ ] 38. 表1 含新增资产负债率列（`debtToAssetRatio`），CSV 表头为 17 列（资产负债率插在毛利率后、披露日期前）；值取自 NeoData 直连 `debt_to_assets_ratio`（2026H1），金融类同样有值、仅来源缺失时留空、不填 0；SNAPSHOT 与资料库 market 表同步含该字段。
 - [ ] 39. 表1/表4 空缺的经营现金流净额、毛利率由 NeoData 直连 2026-H1 同源同口径回填（已抽样逐位核对），已有值未被覆盖（茅台现金流 70690750119.06、毛利率 89.5552 保持原值；大全能源毛利率 −74.4 未被 −74.4242 覆盖）；SNAPSHOT/资料库与 CSV 逐字段一致，`roe`/`revenueYoy` 因口径差异保持原值。
 
+**v1.8 表1 样本扩至 71 家（P2-3，data-engineer 落库）**
+- [ ] 40. market 表样本 67→71 家，补齐浪潮信息(000977)/紫光股份(000938)/华友钴业(603799)/亿纬锂能(300014) 4 家真实财报数据（NeoData 直连 2026H1），字段保持 17 列、按营收降序，code 无重复（71/71），CSV/JSON/HTML SNAPSHOT 四处同步；资料库 market 表重导 71 行后在线生效。
+
+**v1.9 自绘 SVG 微图表（P2-2，纯前端零依赖）**
+- [ ] 41. 三张微图均为内联自绘 SVG、无任何图表库/CDN：①环节归母净利对比（取表2 chain 11 环节 `netProfitSum`，零轴发散条、盈利红#c0392b/亏损绿#159957）；②主要指数 YTD（取表6 `level=指数行情` 7 条 `chgYtd`，零轴发散条，标注「同一时点横截面、非时间序列」避免误导）；③技术指标 MA 火花线（取表4 `techIndicators.ma` 的 5/10/20/60/120/250 六周期 + 现价虚线，嵌入技术单元格）。
+- [ ] 42. 微图随筛选与在线刷新重建、幂等挂载（已有容器先清空再建、无数据时移除旧图），脏数据（null/非法 JSON/无 ma）优雅降级为空不报错；行为级测试 24/24 PASS、产出无 NaN。
+
 ---
 
-> 变更记录：v1.0 初始锁定契约（pm-architect，2026-11-18）；v1.1 补充单文件/无 CDN/视觉风格硬约束（team-lead 要求）；v1.2 针对 macro-data 五处口径冲突裁决（ROE TTM 放宽+标注、来源白名单扩官方机构、表5 历史快照+statDate、金额单位单次换算、行业缺口填待填）；v1.3 定稿表5 状态字段时间语义、补 WeStock 字段映射与营收字段强约束、数据层命名/免责声明权威归 team-lead（finance-data / frontend-dev 反馈）；v1.4 应 frontend-dev 变更请求增补表4 行情/资金/技术字段（price/changePercent/mainNetFlow 系列/quoteDate/techIndicators JSON/techSignal）；v1.5 放宽表4 chain/link 为可空以容纳无产业链归属的额外龙头、澄清表5 真实历史时点待披露记录合规（data-engineer 落库反馈），验收扩至 35 条，pm-architect 更新；v1.6 表6 扩 8 字段（涨跌幅/换手率/近5日涨跌/近20日涨跌/年初至今/主力净流入/散户净流入/行情时点）容纳指数行情增强，落库 7 大指数真实盘中快照数据，level 枚举新增「指数行情」，验收扩至 37 条（pm-architect/总指挥，2026-11-18）；v1.7 表1新增资产负债率列（debtToAssetRatio，取自 NeoData 直连 2026H1 financial_indicators.debt_to_assets_ratio），经营现金流净额与毛利率空缺项由 NeoData 直连同源同口径回填（只填空缺、不覆盖已有值），ROE/营收同比因口径差异保持原值，SNAPSHOT 与资料库 market 表同步，验收扩至 39 条（data-engineer，2026-11-18）。
+> 变更记录：v1.0 初始锁定契约（pm-architect，2026-11-18）；v1.1 补充单文件/无 CDN/视觉风格硬约束（team-lead 要求）；v1.2 针对 macro-data 五处口径冲突裁决（ROE TTM 放宽+标注、来源白名单扩官方机构、表5 历史快照+statDate、金额单位单次换算、行业缺口填待填）；v1.3 定稿表5 状态字段时间语义、补 WeStock 字段映射与营收字段强约束、数据层命名/免责声明权威归 team-lead（finance-data / frontend-dev 反馈）；v1.4 应 frontend-dev 变更请求增补表4 行情/资金/技术字段（price/changePercent/mainNetFlow 系列/quoteDate/techIndicators JSON/techSignal）；v1.5 放宽表4 chain/link 为可空以容纳无产业链归属的额外龙头、澄清表5 真实历史时点待披露记录合规（data-engineer 落库反馈），验收扩至 35 条，pm-architect 更新；v1.6 表6 扩 8 字段（涨跌幅/换手率/近5日涨跌/近20日涨跌/年初至今/主力净流入/散户净流入/行情时点）容纳指数行情增强，落库 7 大指数真实盘中快照数据，level 枚举新增「指数行情」，验收扩至 37 条（pm-architect/总指挥，2026-11-18）；v1.7 表1新增资产负债率列（debtToAssetRatio，取自 NeoData 直连 2026H1 financial_indicators.debt_to_assets_ratio），经营现金流净额与毛利率空缺项由 NeoData 直连同源同口径回填（只填空缺、不覆盖已有值），ROE/营收同比因口径差异保持原值，SNAPSHOT 与资料库 market 表同步，验收扩至 39 条（data-engineer，2026-11-18）；v1.8 表1 样本扩至 71 家（补齐浪潮信息/紫光股份/华友钴业/亿纬锂能 4 家缺失龙头，按营收降序重排），字段数保持 17 列，SNAPSHOT/CSV/JSON/资料库四处同步，验收扩至 40 条（data-engineer，2026-11-18）；v1.9 自绘 SVG 微图表三张（环节归母净利对比/指数YTD/MA期限结构火花线，零外部依赖、随刷新重建），纯前端无字段变更，验收扩至 42 条（frontend-dev，2026-11-18）。
