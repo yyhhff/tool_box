@@ -32,6 +32,7 @@
 - [x] 实跑验证通过路径（22/22 PASS，exit 0）
 - [x] 实跑验证失败路径（破坏副本 → 精确报 2 FAIL + exit 1 → 还原复检全绿）
 - [x] USER_GUIDE 补用法说明
+- [x] bat 工具化升级（2026-11-19 追加）：start.bat 独立可用——有 Python 跑完整 22 项，无 Python 走内置检查（4 结构标签 + 6 图表函数 + CSV 存在 + node 做 JS 语法）；修复 --check-only 未透传 py 的穿透 bug；四条路径实测（完整 22/22、内置降级全绿、内置+node 语法 PASS、空 HTML 报 11 FAIL 拒启动 exit 1）
 
 ## 验收标准
 

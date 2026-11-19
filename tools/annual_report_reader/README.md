@@ -35,3 +35,8 @@ python server.py
 
 - Python 3.10+；`pip install -r requirements.txt`
 - akshare / pymupdf / openai / flask / requests
+
+## 扩展：2026 A 股半年报分析台
+
+- 入口：`h1_2026.html`（单文件全内联单页，可离线直开；六板块 + 四级联动，资料库 SDK + 内嵌快照双数据源）
+- 文档：`h1_2026_docs/`（CONTRACT 数据契约与口径、USER_GUIDE 使用说明、QA_REPORT 验收、GAP_ANALYSIS 对标差距、REALTIME_AND_COST 实时化与成本方案，详情见各文件）

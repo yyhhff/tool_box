@@ -58,7 +58,7 @@
 
 直接用浏览器打开发布链接即可，无需登录。若你拿到的是单独的 `h1_2026.html` 文件，双击用浏览器（Edge / Chrome 等）打开也能完整使用。
 
-**本地自检启动**：双击工具目录下的 `start.bat`（或命令行 `python selfcheck.py`）——先自动自检（HTML 结构 / JS 语法 / SNAPSHOT 六表 / 微图表函数 / CRLF / CSV-JSON 一致性共 22 项），全部通过才用默认浏览器打开页面；任一失败会列出具体问题且不启动。加 `--check-only` 参数可只自检不打开（适合定时巡检）。
+**本地自检启动**：双击工具目录下的 `start.bat`——独立可用的自检工具：本机装有 Python 时自动跑完整 22 项自检（`selfcheck.py`），没有 Python 则执行 bat 内置基础检查（结构标签 / 图表函数 / CSV 存在 / node 做 JS 语法），全部通过才用默认浏览器打开页面；任一失败会列出具体问题且不启动。命令行 `start.bat --check-only` 或 `python selfcheck.py --check-only` 可只自检不打开（适合定时巡检）。
 
 ### 2.2 首次打开看到什么
 
