@@ -20,7 +20,16 @@ python main.py --auto --limit 2
 
 :: Web 界面（勾选行业、看进度、读报告）
 python server.py
+
+:: 本地分析模式（零 GLM、无需 ZHIPU_API_KEY）：31行业龙头带读 + 跨行业横向对比
+python main.py --auto --top 1 --local --force
+:: 只跑指定行业/公司也支持
+python main.py --stocks 600519,002594 --local --force
 ```
+
+`--local` 走 `analyzer_local.py`：财务数字由 `extractor` 从年报原文提取（带 PDF 页码），
+带读文字由本地规则+模板生成，不调用任何大模型、不读取 `ZHIPU_API_KEY`。
+失败/无年报的公司如实标注跳过，不编造数据。报告末尾标注"分析方式：本地程序（未调用大模型）"。
 
 前置：设置环境变量 `ZHIPU_API_KEY`（智谱开放平台申请）。Windows 下若已用 `setx` 设置但当前终端/服务读不到（setx 不更新已运行进程），代码会自动从用户级注册表读取并回填，无需重开终端。
 

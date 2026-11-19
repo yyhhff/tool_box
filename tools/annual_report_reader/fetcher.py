@@ -89,7 +89,8 @@ def _pick_annual(anns: list[dict]) -> dict | None:
             continue
         if any(k in title for k in _TITLE_SKIP):
             continue
-        m = re.search(r"(\d{4})年年度报告", title)
+        # 兼容「2025年年度报告」与「2025年度报告」（工行/神华/中石油等用后者）
+        m = re.search(r"(\d{4})年?年度报告", title)
         if not m:
             continue
         cands.append({"year": int(m.group(1)), "title": title,

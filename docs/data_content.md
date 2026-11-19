@@ -2,7 +2,7 @@
 
 > **用途**：查"数据从哪来、到哪去、什么格式"。
 > **维护规则**：任何工具新增/变更输入输出文件后，必须同步登记本文件（见 AGENTS.md 硬性规则）。
-> 最后更新：2026-11-18
+> 最后更新：2026-11-19
 
 ## 数据目录约定
 
@@ -33,7 +33,8 @@
 |-----------|------|------|--------|--------|------|
 | 年报带读用户配置 | data/input/annual_report_reader/config.json | JSON（top_n、行业筛选、overrides、last_run） | annual_report_reader：Web/CLI 自动保存；可手工编辑 | annual_report_reader | 入 git；"记忆"载体之一，记录上次运行范围 |
 | 年报带读分析索引 | data/output/annual_report_reader/index.json | JSON（每公司：行业/年份/状态/报告路径/时间） | annual_report_reader | annual_report_reader（增量跳过依据）+ 人 | 不入 git；"记忆"载体之二 |
-| 单公司带读报告 | data/output/annual_report_reader/companies/<代码>_<年份>/report.md | Markdown | annual_report_reader（GLM 生成） | 人 / Web 报告阅读 | 不入 git；财务数字提取自年报原文并标页码 |
+| 单公司带读报告 | data/output/annual_report_reader/companies/<代码>_<年份>/report.md | Markdown | annual_report_reader（GLM 或 --local 本地程序生成） | 人 / Web 报告阅读 | 不入 git；财务数字提取自年报原文并标页码；本地模式报告标注「未调用大模型」 |
+| 跨行业龙头横向对比 | data/output/annual_report_reader/industries/<年份>_31行业龙头横向对比.md | Markdown | analyzer_local（--local 模式生成） | 人 / Web 报告阅读 | 不入 git；29 家龙头营收/净利/同比/ROE/现金流对比，数字来自 extractor |
 | 行业对比报告 | data/output/annual_report_reader/industries/<行业>_<年份>.md | Markdown | annual_report_reader（≥2 家完成后生成） | 人 / Web 报告阅读 | 不入 git |
 | 原始年报 PDF | data/output/annual_report_reader/pdfs/<代码>_<年份>.pdf | PDF | fetcher：巨潮资讯网下载 | extractor | 不入 git；长期保留，已存在则复用，可手动放入兜底（TASK-0012 起改此路径） |
 | 行业快照 | data/cache/annual_report_reader/industry_snapshot.json | JSON（31 行业 × 市值前 8 候选） | industry.py：申万成分（akshare）+ 腾讯行情 | industry.select / Web | 不入 git；接口失效时选股回退此快照 |
@@ -47,7 +48,7 @@
 
 | 数据/文件 | 路径 | 格式 | 生产者 | 消费者 | 说明 |
 |-----------|------|------|--------|--------|------|
-| 服务状态记录 | data/cache/service_manager/services.json | JSON | service_manager：Web 界面操作后保存 | service_manager | 入 git；记录各服务运行状态与进程ID |
+| 服务状态记录 | data/cache/service_manager/services.json | JSON | service_manager：Web 界面操作后保存 | service_manager | 不入 git（被 .gitignore 的 data/cache/ 覆盖，2026-11-19 演练勘误）；记录各服务运行状态与进程ID |
 | 服务日志 | data/cache/service_manager/logs/<service_id>.log | 文本（追加式） | 各工具 server.py 输出 | service_manager：日志查看 | 不入 git；排查服务问题用 |
 
 ### french-learner（独立 Git 仓库；详情见其 README.md 与 docs/）
@@ -67,8 +68,18 @@
 | 数据/文件 | 路径 | 格式 | 生产者 | 消费者 | 说明 |
 |-----------|------|------|--------|--------|------|
 | WorkBuddy 多账号管理数据 | tools/workbuddy-multi-account/workbuddy.db | SQLite（accounts/chat_messages/checkin_records/settings 四表） | server.py：启动时自动初始化 | server.py + 前端 | 不入 git（.gitignore）；含测试/账号数据；结构定义在 models.py，删库后重启自动重建 |
-| WorkBuddy 凭据快照 | tools/workbuddy-multi-account/credentials/<account_id>.info | JSON（客户端凭据原样复制，含 accessToken） | account_service.bind_account：添加账号时从客户端凭据文件复制 | workbuddy_client：构建 Bearer 请求 | 不入 git（.gitignore）；**含登录态 token，严禁入库**；失效后在客户端重新登录并调 POST /api/accounts/{id}/refresh |
+| WorkBuddy 凭据快照 | tools/workbuddy-multi-account/credentials/<account_id>.info | JSON（客户端凭据原样复制，含 accessToken） | account_service.bind_account：添加账号时从客户端凭据文件复制 | workbuddy_client：构建 Bearer 请求 | 不入 git（.gitignore）；**含登录态 token，严禁入库**；失效后客户端重新登录并调 POST /api/accounts/{id}/refresh；DELETE 账号时同步删除（TASK-0045） |
 | WorkBuddy 运行日志 | data/output/workbuddy-multi-account/*.log | 文本（追加式） | server.py 输出 | 人 | 不入 git；排查问题用 |
+| 客户端任务列表快照 | ~/.workbuddy/<uid>/sidebar-list-snapshot.json | JSON（version/savedAt/items[]，每项含 id/title/state/updatedAt/lastActivityAt/space） | WorkBuddy 客户端写；TASK-0037 切号时合入目标 uid | WorkBuddy 客户端 UI（侧边栏任务列表） | **客户端私有数据，不在本仓库**；uid 与工具账号映射见凭据快照 account.uid；写入须停机+备份+原子替换；详情见 tools/workbuddy-multi-account/README.md |
+| 客户端会话记录库 | ~/.workbuddy/workbuddy.db（sessions 表，按 user_id 隔离） | SQLite | WorkBuddy 客户端写；TASK-0037 迁移时 UPDATE user_id | WorkBuddy 客户端 | **客户端私有数据，不在本仓库**；有 wal/shm，写入须停机+备份；串号防护靠 UPDATE ... WHERE user_id=源 AND id IN 任务集 |
+| 任务快照迁移备份 | data/cache/workbuddy-multi-account/snapshots/<时间戳>/ | JSON + SQLite 副本 | task_snapshot_service 写前备份 | 迁移失败回滚 | 不入 git；写前备份 sidebar 快照与 workbuddy.db（含 wal/shm）|
+
+### night_ops（夜班自动化，TASK-0028）
+
+| 数据/文件 | 路径 | 格式 | 生产者 | 消费者 | 说明 |
+|-----------|------|------|--------|--------|------|
+| 夜班任务池 | tasks/night_backlog.md | Markdown（表格） | 夜班总指挥：每晚巡库全量刷新；白天用户可手工添加 | 夜班总指挥 | 入 git；条目须带白名单来源（文档路径）；章程见 docs/night_ops.md |
+| 夜报 | tasks/night_reports/YYYY-MM-DD.md | Markdown | 夜班总指挥：09:00 收口时生成 | 人 | 入 git；演练文件加 -drill 后缀 |
 
 ## 数据流示意
 

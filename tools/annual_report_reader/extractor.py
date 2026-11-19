@@ -222,11 +222,34 @@ def chunk_context(ctx: dict, max_chars: int = 4200) -> list[dict]:
 
 
 def _find_fin_page(pages: list[str]) -> int | None:
-    """定位"主要会计数据"表所在页（要求同时出现带千分位的大额数字）。"""
+    """定位"主要会计数据"表所在页（要求同时出现带千分位的大额数字）。
+
+    数字可能带小数（15,197,799.12）也可能是整数千分位（317,508），故小数部分可选。
+    """
     for i, text in enumerate(pages[:35]):
-        if "主要会计数据" in text and re.search(r"\d{1,3}(,\d{3})+\.\d{2}", text):
+        if ("主要会计数据" in text or "主要财务数据" in text) and re.search(
+                r"\d{1,3}(?:,\d{3})+(?:\.\d{1,2})?", text):
             return i
     return None
+
+
+def _unit_multiplier(pages: list[str], fin_page: int) -> float:
+    """从财务表页面解析金额单位，返回换算到「元」的倍数。
+
+    单位标注可能在页眉（「单位：百万元」）或指标名括号内（「营业收入（千元）」），
+    故扫描整页；优先级 百万元>千元>万元>亿元。无标注时按元（1.0）。
+    只影响元类指标，不改变每股/百分比字段。
+    """
+    text = pages[fin_page]
+    if re.search(r"(单位[：:]?)?\s*(人民币)?百万元|百万人民币", text):
+        return 1e6
+    if re.search(r"(单位[：:]?)?\s*(人民币)?千元|千元人民币", text):
+        return 1e3
+    if re.search(r"单位[：:]\s*万元|人民币万元", text):
+        return 1e4
+    if re.search(r"单位[：:]\s*亿元|人民币亿元", text):
+        return 1e8
+    return 1.0
 
 
 def _split_nums(text: str, decimals: int) -> list[float]:
@@ -281,6 +304,7 @@ def extract_financials(pages: list[str]) -> tuple[dict, int | None]:
     fin_page = _find_fin_page(pages)
     if fin_page is None:
         return {}, None
+    mult = _unit_multiplier(pages, fin_page)  # 表头金额单位 → 元的换算倍数
     blocks = _table_blocks(pages[fin_page])
     # 表可能跨页：下一页只取到"分季度/非经常性损益"之前，避免混入其他表
     if fin_page + 1 < len(pages):
@@ -320,6 +344,10 @@ def extract_financials(pages: list[str]) -> tuple[dict, int | None]:
             result[key] = entry
         else:
             current, previous = nums[0], (nums[1] if len(nums) > 1 else None)
+            # 元类指标按表头单位换算成元；每股/百分比类不变（unit != "元"）
+            if unit == "元" and mult != 1.0:
+                current = current * mult if current is not None else None
+                previous = previous * mult if previous is not None else None
             yoy, stated = None, False
             # 第 3 个数是同比列；但异常大的值可能是"2023 年"第三列而非同比
             if len(nums) > 2 and abs(nums[2]) <= 999:

@@ -2,7 +2,7 @@
 
 > **用途**：接到需求后先查本文件，定位改动点，再动手。
 > **维护规则**：新增/删除/变更任何工具或目录后，必须同步更新本文件（见 AGENTS.md 硬性规则）。
-> 最后更新：2026-11-18
+> 最后更新：2026-11-19
 
 ## 地图维护原则（TASK-0025 起生效）
 
@@ -22,10 +22,13 @@ tool_box/
 │   ├── project_content.md    # 本文件：项目地图
 │   ├── data_content.md       # 数据地图
 │   ├── git_guide.md          # Git 使用命令文档
+│   ├── night_ops.md          # 夜班章程（23:00-09:00 无人值守自动迭代，TASK-0028）
 │   └── lessons.md            # 经验库：跨项目通用经验
 ├── tasks/
 │   ├── task_state.md         # 任务看板（活动任务索引 + 归档记录）
 │   ├── _TEMPLATE.md          # 任务文件模板
+│   ├── night_backlog.md      # 夜班任务池（每晚巡库刷新）
+│   ├── night_reports/        # 夜报目录（每晚收口产物）
 │   ├── active/               # 进行中的任务文件
 │   └── archive/              # 已完成任务归档（按 YYYY-MM 分目录）
 ├── tools/
@@ -55,10 +58,10 @@ tool_box/
 | 工具 | 路径 | 入口 | 功能一句话 | 状态 | 详情 |
 |------|------|------|-----------|------|------|
 | xhs_crawler | tools/xhs_crawler/ | server.py（Web）/ main.py（CLI） | Python 爬取指定博主、指定时间范围内的小红书博文，本地 Web 界面 + CLI | 待真机验收 | tools/xhs_crawler/README.md |
-| annual_report_reader | tools/annual_report_reader/ | server.py（Web，:5001）/ main.py（CLI）/ h1_2026.html（单页分析台） | 行业龙头年报带读（申万一级 31 行业 × 每行业市值前 3 龙头，GLM，自定义行业/公司，记忆增量续跑）；扩展「2026 A股半年报分析台」六板块单页 | 核心链路已验收，GLM 生成待验收；半年报分析台已发布 | README.md；半年报详见 h1_2026_docs/USER_GUIDE.md |
+| annual_report_reader | tools/annual_report_reader/ | server.py（Web，:5001）/ main.py（CLI）/ h1_2026.html（单页分析台） | 行业龙头年报带读（申万一级 31 行业龙头，GLM 或 --local 零 GLM 本地模式，记忆增量续跑）；扩展「2026 A股半年报分析台」六板块单页 | 31行业本地带读完成29家+横向对比（TASK-0046）；半年报分析台已发布 | README.md；半年报详见 h1_2026_docs/USER_GUIDE.md |
 | service_manager | tools/service_manager/ | server.py（Web，:5002） | Python 启动、重启、关闭服务，查看服务状态与日志 | 待真机验收 | tools/service_manager/README.md |
-| french-learner | tools/french-learner/ | start.bat 一键启动（后端 :8000 被占自动回退 8001-8019 + 本地语音 :8010；可离线直开 frontend/index.html） | 呀呀法语：Web 法语学习产品（重述式 AI 口语陪练 + i+1 分级输入 + CEFR 定级 + 生词卡 SM-2 复习 + DELF/TCF 考级冲刺）；独立 Git 仓库 | 阶段 0/1/2/3/4 已实现；QA 109/109、16/16、112 PASS；阶段 0/4 待上级验收 | tools/french-learner/README.md（架构契约与 QA 报告在其 docs/） |
-| workbuddy-multi-account | tools/workbuddy-multi-account/ | server.py（FastAPI，:8000） | WorkBuddy 多账号管理：多账号登录、自动签到、聊天记录合并与迁移，Web 管理面板 | 进行中（基础 API 已实现，待前端开发） | tools/workbuddy-multi-account/README.md |
+| french-learner | tools/french-learner/ | start.bat 一键启动（后端 :8000 被占自动回退 8001-8019 + 本地语音 :8010；可离线直开 frontend/index.html） | 呀呀法语：Web 法语学习产品（重述式 AI 口语陪练 + i+1 分级输入 + CEFR 定级 + 生词卡 SM-2 复习 + 读音规则 + DELF/TCF 冲刺）；独立 Git 仓库 | 阶段 0-4、读音覆盖修复（词卡 97.8%）、生词卡重设计均已验收 | tools/french-learner/README.md（架构契约与 QA 报告在其 docs/） |
+| workbuddy-multi-account | tools/workbuddy-multi-account/ | server.py（FastAPI，端口可配默认 8000，占用自动回退） | WorkBuddy 多账号管理：多账号登录、自动签到、聊天记录合并与迁移、切号任务快照迁移、账号删除，Web 管理面板 | 进行中（切号写回修复 + 删除 TASK-0045；此前 TASK-0037/0041/0043/0044 已完成） | tools/workbuddy-multi-account/README.md |
 
 ## 常见需求 → 改动点定位
 
@@ -70,6 +73,7 @@ tool_box/
 | 修改工具的输入/输出 | 工具目录 + `data/` 下对应文件 | `data_content.md` |
 | 抽取/新增公共函数 | `shared/` | 本文件目录职责（如有新目录） |
 | 调整 AI 工作流/规范 | `AGENTS.md` | 无 |
+| 夜班自动化调整（NightOps） | `docs/night_ops.md`（夜间 agent 无权修改章程，须用户白天确认） | 无 |
 | 更新文档/地图 | `docs/` | 结构变更必须同步地图 |
 | 任务管理 | `tasks/task_state.md` + `tasks/active/` | 完成后归档 |
 | 沉淀/查阅通用经验 | `docs/lessons.md` | 收录标准见该文件头 |

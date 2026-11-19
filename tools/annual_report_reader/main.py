@@ -13,6 +13,7 @@ import time
 from pathlib import Path
 
 import analyzer
+import analyzer_local
 import extractor
 import fetcher
 import industry
@@ -68,9 +69,13 @@ def _resolve_last_run(cfg: dict) -> tuple[list[str] | None, list[str] | None]:
 def run_pipeline(cfg: dict, industries: list[str] | None = None,
                  stocks: list[str] | None = None, top_n: int | None = None,
                  limit: int = 0, force: bool = False, model: str | None = None,
-                 policy_file: str | None = None,
+                 policy_file: str | None = None, local: bool = False,
                  progress=print) -> dict:
-    """主流水线：选股 → 查年报 → 下载 → 提取 → GLM 带读 → 行业汇总。"""
+    """主流水线：选股 → 查年报 → 下载 → 提取 → 带读 → 横向对比。
+
+    local=True 时走 analyzer_local（纯本地，不读 ZHIPU_API_KEY、不调用任何 LLM），
+    并生成一份跨行业龙头横向对比；否则沿用 GLM 的 analyzer + 行业内汇总。
+    """
     cfg = {**cfg}
     if industries:
         cfg["industries_include"] = industries
@@ -87,7 +92,8 @@ def run_pipeline(cfg: dict, industries: list[str] | None = None,
         progress("没有匹配的公司，请检查行业/代码或行业快照")
         return {"total": 0, "done": 0, "skipped": 0, "failed": 0}
 
-    progress(f"本次共 {len(targets)} 家公司，模型 {model}"
+    progress(f"本次共 {len(targets)} 家公司，"
+             + ("本地分析模式（零 GLM）" if local else f"模型 {model}")
              + ("，强制重跑" if force else "（增量模式，已有同年份报告的自动跳过）"))
 
     policy_context = None
@@ -95,8 +101,10 @@ def run_pipeline(cfg: dict, industries: list[str] | None = None,
         policy_context = Path(policy_file).read_text(encoding="utf-8")
         progress(f"已载入政策背景：{policy_file}")
 
-    cli = analyzer.client()
+    # 本地模式不初始化 GLM client（不读 key、不建外部连接）
+    cli = None if local else analyzer.client()
     index = memory.load_index()
+    cross_materials: list[dict] = []  # 本地模式用于跨行业横向对比
     done_materials: dict[str, list] = {}
     stats = {"total": len(targets), "done": 0, "skipped": 0, "failed": 0}
 
@@ -130,17 +138,26 @@ def run_pipeline(cfg: dict, industries: list[str] | None = None,
                 raise RuntimeError("章节定位失败（未识别出年报'第X节'结构），可能为非标准模板")
             meta = {**t, "name": info["name"] or t["name"], "year": year,
                     "title": info["title"], "ann_date": info["ann_date"]}
-            report = analyzer.analyze_company(
-                meta, pages, ranges, model, cli=cli, progress=progress,
-                policy_context=policy_context)
+            if local:
+                report = analyzer_local.analyze_company_local(
+                    meta, pages, ranges, progress=progress)
+            else:
+                report = analyzer.analyze_company(
+                    meta, pages, ranges, model, cli=cli, progress=progress,
+                    policy_context=policy_context)
             out_dir = memory.company_dir(code, year)
             out_path = out_dir / "report.md"
             out_path.write_text(report, encoding="utf-8")
             fin, fin_page = extractor.extract_financials(pages)
+            if local:
+                cross_materials.append({"name": info["name"], "code": code,
+                                        "industry": t["industry"], "fin": fin,
+                                        "fin_page": fin_page, "year": year})
             memory.record(index, code, name=info["name"], industry=t["industry"],
                           year=year, title=info["title"], status="done",
                           report_path=str(out_path), pdf_path=str(pdf),
-                          ann_date=info["ann_date"])
+                          ann_date=info["ann_date"],
+                          analysis="local" if local else "glm")
             done_materials.setdefault(t["industry"], []).append({
                 "name": info["name"], "code": code,
                 "fin_md": extractor.financial_table_md(fin, fin_page),
@@ -155,19 +172,33 @@ def run_pipeline(cfg: dict, industries: list[str] | None = None,
             progress(f"{tag} ✘ 失败：{exc}")
             stats["failed"] += 1
 
-    # 行业对比汇总：本轮完成 ≥2 家的行业才生成
-    for ind_name, mats in done_materials.items():
-        if len(mats) < 2:
-            continue
-        try:
-            year = max(int((index.get(m["code"]) or {}).get("year") or 0) for m in mats)
-            report = analyzer.analyze_industry(ind_name, year, mats, model,
-                                               cli=cli, progress=progress)
-            out_path = memory.industry_dir() / f"{ind_name}_{year}.md"
-            out_path.write_text(report, encoding="utf-8")
-            progress(f"行业汇总完成：{out_path}")
-        except Exception as exc:
-            progress(f"行业汇总失败（{ind_name}）：{exc}")
+    if local:
+        # 本地模式：生成一份跨行业龙头横向对比（不依赖同行业 ≥2 家）
+        if cross_materials:
+            try:
+                year = max(int((index.get(m["code"]) or {}).get("year") or 0)
+                           for m in cross_materials)
+                report = analyzer_local.analyze_cross_industry(
+                    cross_materials, year, progress=progress)
+                out_path = memory.industry_dir() / f"{year}_31行业龙头横向对比.md"
+                out_path.write_text(report, encoding="utf-8")
+                progress(f"跨行业横向对比完成：{out_path}")
+            except Exception as exc:
+                progress(f"跨行业横向对比失败：{exc}")
+    else:
+        # 行业对比汇总：本轮完成 ≥2 家的行业才生成
+        for ind_name, mats in done_materials.items():
+            if len(mats) < 2:
+                continue
+            try:
+                year = max(int((index.get(m["code"]) or {}).get("year") or 0) for m in mats)
+                report = analyzer.analyze_industry(ind_name, year, mats, model,
+                                                   cli=cli, progress=progress)
+                out_path = memory.industry_dir() / f"{ind_name}_{year}.md"
+                out_path.write_text(report, encoding="utf-8")
+                progress(f"行业汇总完成：{out_path}")
+            except Exception as exc:
+                progress(f"行业汇总失败（{ind_name}）：{exc}")
 
     progress(f"全部结束：完成 {stats['done']}，跳过 {stats['skipped']}，"
              f"失败 {stats['failed']}，共 {stats['total']}")
@@ -193,6 +224,7 @@ def main() -> None:
     ap.add_argument("--force", action="store_true", help="强制重跑（忽略记忆跳过）")
     ap.add_argument("--model", help="GLM 模型名，默认 glm-4-flash")
     ap.add_argument("--auto", action="store_true", help="忽略上次范围，全行业全量")
+    ap.add_argument("--local", action="store_true", help="本地分析模式：不调用 GLM、无需 ZHIPU_API_KEY，生成带读+跨行业横向对比")
     ap.add_argument("--list", action="store_true", help="只列出将分析的公司")
     ap.add_argument("--policy", help="政策背景文本文件路径（预留，二期）")
     args = ap.parse_args()
@@ -216,7 +248,7 @@ def main() -> None:
                              args.model or cfg.get("model"))
     stats = run_pipeline(cfg, industries=industries, stocks=stocks, top_n=top_n,
                          limit=args.limit, force=args.force, model=args.model,
-                         policy_file=args.policy)
+                         policy_file=args.policy, local=args.local)
     sys.exit(0 if stats["done"] + stats["skipped"] > 0 or stats["total"] == 0 else 1)
 
 

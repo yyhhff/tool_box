@@ -14,18 +14,22 @@
 | TASK-0024 | workbuddy-multi-account | WorkBuddy 多账号管理工具（MVP） | 高 | 进行中（真机验收核心链路通过：加密凭据解密 + bind 快照 + 真实签到 +100 积分到账确认；缺陷 D1-D10 已修复并 git 提交 b224775/73a86a6；遗留聊天记录 API 探索、第二账号 bind、前端） | tasks/active/TASK-0024-workbuddy-multi-account.md |
 | TASK-0028 | tool_box 全局 | 夜班自动化 NightOps（23:00–09:00 无人值守迭代） | 高 | 进行中（章程/任务池/Cron/演练已落地，待首夜实战验证） | tasks/active/TASK-0028-night-ops.md |
 | TASK-0029 | french-learner | 逐词点击学发音 + 连读教学（例句/短语） | 中 | 进行中（浏览器真机验收三步全过：token→单词卡/连读卡/零回归，待验收） | tasks/active/TASK-0029-linking-teaching.md |
-| TASK-0031 | french-learner | 读音跟读闭环（P1）：🎙 ASR 近似比对 + 三档温和反馈 | 高 | 进行中（评分单测 9/9 + UI 截图全过，真麦克风端到端待用户验收） | tasks/active/TASK-0031-pron-shadow-p1.md |
 | TASK-0032 | french-learner | 读音学习交互重构：贴词气泡 + 连读内嵌（取代模态跳转） | 高 | 进行中（浏览器真机四步全过：气泡原地/外点关闭/再点收起/内嵌展开收起/完整讲解回位，待用户验收） | tasks/active/TASK-0032-pron-inline-popover.md |
-| TASK-0040 | french-learner | 学习进度持久化 P0：对话历史读回 + 假值清零 + 真实统计 | 高 | 进行中（方案按推荐口径拍板，多角色实施中） | tasks/active/TASK-0040-progress-persistence-p0.md |
-| TASK-0041 | workbuddy-multi-account | start.bat 启动前自动清理旧服务（防旧代码残留） | 中 | 进行中（方案已确认，实施中） | tasks/active/TASK-0041-start-bat-clean-old-service.md |
 | TASK-0042 | annual_report_reader | h1_2026 分析台自检启动脚本（start.bat + selfcheck.py，22 项自检通过才打开页面） | 低 | 已完成（22/22 PASS，失败路径实测 exit=1，还原复检全绿） | tasks/active/TASK-0042-h1-selfcheck-start.md |
+| TASK-0047 | french-learner | 「我的成长」视图 v1（真实数据聚合 + FALLBACK 假值修复） | 高 | 已完成（待归档登记确认） | tasks/archive/2026-11/TASK-0047-growth-view-v1.md |
 
 ## 归档记录
 
 | ID | 项目 | 任务 | 完成日期 | 归档位置 |
 |----|------|------|----------|----------|
+| TASK-0040 | french-learner | 学习进度持久化 P0：对话历史读回 + 假值清零 + 真实统计 | 2026-11-19 | tasks/archive/2026-11/TASK-0040-progress-persistence-p0.md |
 | TASK-0031 | french-learner | 读音跟读闭环（P1）：🎙 ASR 近似比对 + 三档温和反馈 | 2026-11-19 | tasks/archive/2026-11/TASK-0031-pron-shadow-p1.md |
 | TASK-0037 | workbuddy-multi-account | 切号任务列表迁移：接管客户端任务快照 | 2026-11-19 | tasks/archive/2026-11/TASK-0037-task-snapshot-migration.md |
+| TASK-0041 | workbuddy-multi-account | start.bat 启动前自动清理旧服务（防旧代码残留） | 2026-11-19 | tasks/archive/2026-11/TASK-0041-start-bat-clean-old-service.md |
+| TASK-0043 | workbuddy-multi-account | start.bat 启动后自动在浏览器打开面板（仿呀呀法语） | 2026-11-19 | tasks/archive/2026-11/TASK-0043-auto-open-browser.md |
+| TASK-0045 | workbuddy-multi-account | 修切号凭据写回 PermissionError + 账号删除功能 | 2026-11-19 | tasks/archive/2026-11/TASK-0045-activate-write-and-delete-account.md |
+| TASK-0046 | annual_report_reader | 31行业龙头年报本地带读（零GLM）+ 跨行业横向对比 | 2026-11-19 | tasks/archive/2026-11/TASK-0046-31行业龙头年报本地带读.md |
+| TASK-0044 | workbuddy-multi-account | 端口可配 + 占用时自动回退（修复页面显示旧 JSON/僵尸端口） | 2026-11-19 | tasks/archive/2026-11/TASK-0044-port-fallback.md |
 | TASK-0001 | tool_box 全局 | 项目初始化：搭建目录结构与文档体系 | 2026-11-16 | tasks/archive/2026-11/TASK-0001-项目初始化.md |
 | TASK-0003 | tool_box 全局 | 工作流新增"方案确认"环节 | 2026-11-16 | tasks/archive/2026-11/TASK-0003-工作流新增方案确认环节.md |
 | TASK-0004 | tool_box 全局 | 新增通用经验库 lessons.md | 2026-11-16 | tasks/archive/2026-11/TASK-0004-新增通用经验库lessons.md |
