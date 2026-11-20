@@ -16,7 +16,7 @@
 | TASK-0029 | french-learner | 逐词点击学发音 + 连读教学（例句/短语） | 中 | 进行中（浏览器真机验收三步全过：token→单词卡/连读卡/零回归，待验收） | tasks/active/TASK-0029-linking-teaching.md |
 | TASK-0032 | french-learner | 读音学习交互重构：贴词气泡 + 连读内嵌（取代模态跳转） | 高 | 进行中（浏览器真机四步全过：气泡原地/外点关闭/再点收起/内嵌展开收起/完整讲解回位，待用户验收） | tasks/active/TASK-0032-pron-inline-popover.md |
 | TASK-0063 | french-learner | 补强总纲 v2.2–v4.1 落地 + 多会话并行开发机制（MASTER_PLAN + 路线图灰态） | 高 | 进行中 | tasks/active/TASK-0063-master-plan-parallel.md |
-| TASK-0066 | french-learner | Wave 1 车道 B：v2.3 内容工厂（语料量产管线 + AI 审校 + 音频批量，worktree feature/v2.3-content） | 高 | 进行中 | tasks/active/TASK-0066-v2.3-content-factory.md |
+| TASK-0066 | french-learner | Wave 1 车道 B：v2.3 内容工厂（语料量产管线 + AI 审校 + 音频批量） | 高 | 进行中（产线已合并 main merge 9d96e60；A1 34 篇入库/117 句音频，200+ 全量产持续中，未全量达成不归档） | tasks/active/TASK-0066-v2.3-content-factory.md |
 
 ## 归档记录
 
