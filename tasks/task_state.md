@@ -16,7 +16,6 @@
 | TASK-0029 | french-learner | 逐词点击学发音 + 连读教学（例句/短语） | 中 | 进行中（浏览器真机验收三步全过：token→单词卡/连读卡/零回归，待验收） | tasks/active/TASK-0029-linking-teaching.md |
 | TASK-0032 | french-learner | 读音学习交互重构：贴词气泡 + 连读内嵌（取代模态跳转） | 高 | 进行中（浏览器真机四步全过：气泡原地/外点关闭/再点收起/内嵌展开收起/完整讲解回位，待用户验收） | tasks/active/TASK-0032-pron-inline-popover.md |
 | TASK-0063 | french-learner | 补强总纲 v2.2–v4.1 落地 + 多会话并行开发机制（MASTER_PLAN + 路线图灰态） | 高 | 进行中 | tasks/active/TASK-0063-master-plan-parallel.md |
-| TASK-0067 | french-learner | v3.2 发音教练（词级时间戳 + 选句器 + 三维评分 + 中文反馈） | 高 | 进行中（worktree feature/v3.2-pron） | tasks/active/TASK-0067-v3.2-pron-coach.md |
 | TASK-0066 | french-learner | Wave 1 车道 B：v2.3 内容工厂（语料量产管线 + AI 审校 + 音频批量，worktree feature/v2.3-content） | 高 | 进行中 | tasks/active/TASK-0066-v2.3-content-factory.md |
 
 ## 归档记录
@@ -25,6 +24,7 @@
 
 | ID | 项目 | 任务 | 完成日期 | 归档位置 |
 |----|------|------|----------|----------|
+| TASK-0067 | french-learner | Wave 1 车道 C：v3.2 发音教练（词级时间戳 + 三池选句器 + 三维评分 + 中文反馈；端到端实测 ~3.6s 略超 3s 待调参） | 2026-11-20 | tasks/archive/2026-11/TASK-0067-v3.2-pron-coach.md |
 | TASK-0065 | french-learner | Wave 1 车道 A：v2.2 零基础 A1 通路（定级四档24题 + A1语料10篇 + onboarding台阶路径，真机验收通过） | 2026-11-20 | tasks/archive/2026-11/TASK-0065-v2.2-a1-path.md |
 | TASK-0064 | french-learner | Wave 0 地基拆分（app.py→12 routers + app.js→ES modules + worktree 脚本，A/B 行为一致） | 2026-11-20 | tasks/archive/2026-11/TASK-0064-wave0-foundation.md |
 | TASK-0062 | french-learner | 使用反馈收集入口 v1：页脚按钮 + 方向+文字浮层 + 汇总端点 + 决策文档 | 2026-11-20 | tasks/archive/2026-11/TASK-0062-feedback-v1.md |

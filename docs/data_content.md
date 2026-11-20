@@ -61,7 +61,8 @@
 | 呀呀法语分级语料 | tools/french-learner/data/input/texts.json | JSON（31 篇，A1 10 + A2/B1/B2 各 7，A1 含 76 生词） | 内容角色原创编写 | seed_input.py 启动加载入 input_* 三表 | 入 git；原创教学示例，CEFR 为教学标注；A1 十篇为 v2.2 零基础批次（8 短文+2 对话，TASK-0065）；改动需重启服务同步 |
 | 呀呀法语定级题库 | tools/french-learner/data/input/assessment_questions.json | JSON（v2，24 题四档 A1/A2/B1/B2 各 6，每档词汇/语法/理解各 2） | 内容角色原创编写 | backend/assessment.py 启动加载、进程内缓存 | 入 git；原创教学示例非官方真题；answer_idx/explanation_zh 仅服务端判分用，GET 零下发；权重 0/1/2/3、加权满分 36、保底 A1（TASK-0065）；详见其 docs/ARCHITECTURE_PLACEMENT.md；改动需重启服务同步 |
 | 呀呀法语考级模拟卷 | tools/french-learner/data/input/exam_papers.json | JSON（2 套原创卷 delf_b2_01/tcf_b2_01，每套 8 题） | 内容角色原创编写 | backend/exam.py 启动加载、进程内缓存 | 入 git；原创模拟非官方真题；四类敏感字段 GET 白名单投影零下发、重复交卷不幂等；详见其 docs/ARCHITECTURE_EXAM.md；改动需重启服务同步 |
-| 呀呀法语 Whisper 模型缓存 | C:\Users\Karen\.cache\huggingface\hub\models--Systran--faster-whisper-tiny | 模型权重（~75MB） | faster-whisper 首次加载自动下载 | asr_service/server.py | 不入 git；已下载则离线可用；换模型改 YAYA_ASR_MODEL 环境变量 |
+| 呀呀法语发音教练难点句库 | tools/french-learner/data/input/pron_coach_focus.json | JSON（100 句，5 标签 y_vs_u/nasal/r/elision/liaison） | 内容角色原创编写 | backend/pron_coach.py 选句器加载、进程内缓存 | 入 git；v3.2 发音教练难点句，每句 fr/cn/cefr/tags/focus_word；三池选句器另一池复用 texts.json 逐句、词卡池复用 word_cards；改动需重启服务同步（TASK-0067） |
+| 呀呀法语 Whisper 模型缓存 | C:\Users\Karen\.cache\huggingface\hub\models--Systran--faster-whisper-tiny | 模型权重（~75MB） | faster-whisper 首次加载自动下载 | asr_service/server.py | 不入 git；已下载则离线可用；换模型改 YAYA_ASR_MODEL 环境变量；word_ts=1 词级时间戳见 TASK-0067 |
 
 ### workbuddy-multi-account
 
