@@ -56,10 +56,10 @@
 | 数据/文件 | 路径 | 格式 | 生产者 | 消费者 | 说明 |
 |-----------|------|------|--------|--------|------|
 | 呀呀法语对话脚本（历史原型） | tools/french-learner/demo.html（内嵌 SCENARIOS） | JS 对象 | 内置于 Demo | demo.html 前端交互 | 入 git；历史单文件原型，保留供对照 |
-| 呀呀法语应用数据库 | tools/french-learner/backend/data/yaya.db | SQLite（9 表） | backend/seed.py 首次启动灌入；seed_input.py 同步语料；app.py 运行时读写 | backend/app.py API | 不入 git；删库重启自动重建种子数据；表结构见其 docs/ARCHITECTURE*.md |
+| 呀呀法语应用数据库 | tools/french-learner/backend/data/yaya.db | SQLite（多表：核心 9 + 输入流/画像/成就/反馈等增量表） | backend/seed.py 首次启动灌入；seed_input.py 同步语料；app.py 运行时读写 | backend/app.py API | 不入 git；删库重启自动重建种子数据；表结构见其 docs/ARCHITECTURE*.md。成就判定落 achievements 表（UNIQUE user_id+code，TASK-0058）；用户反馈落 feedback 表（预设方向 category+文字 content+可选 contact，TASK-0062，汇总驱动版本决策） |
 | 呀呀法语架构与章程 | tools/french-learner/docs/ | Markdown（架构契约、章程、QA 报告等） | 架构师 / PM / 测试 | 前后端开发、独立验收 | 入 git；契约 v1/v2、定级/考级契约与安全红线、QA 报告，详情见各文件 |
-| 呀呀法语分级语料 | tools/french-learner/data/input/texts.json | JSON（21 篇，A2/B1/B2 各 7，157 生词） | 内容角色原创编写 | seed_input.py 启动加载入 input_* 三表 | 入 git；原创教学示例，CEFR 为教学标注；改动需重启服务同步 |
-| 呀呀法语定级题库 | tools/french-learner/data/input/assessment_questions.json | JSON（12 题，A2/B1/B2 各 4） | 内容角色原创编写 | backend/assessment.py 启动加载、进程内缓存 | 入 git；原创教学示例非官方真题；answer_idx/explanation_zh 仅服务端判分用，GET 零下发；详见其 docs/ARCHITECTURE_PLACEMENT.md；改动需重启服务同步 |
+| 呀呀法语分级语料 | tools/french-learner/data/input/texts.json | JSON（31 篇，A1 10 + A2/B1/B2 各 7，A1 含 76 生词） | 内容角色原创编写 | seed_input.py 启动加载入 input_* 三表 | 入 git；原创教学示例，CEFR 为教学标注；A1 十篇为 v2.2 零基础批次（8 短文+2 对话，TASK-0065）；改动需重启服务同步 |
+| 呀呀法语定级题库 | tools/french-learner/data/input/assessment_questions.json | JSON（v2，24 题四档 A1/A2/B1/B2 各 6，每档词汇/语法/理解各 2） | 内容角色原创编写 | backend/assessment.py 启动加载、进程内缓存 | 入 git；原创教学示例非官方真题；answer_idx/explanation_zh 仅服务端判分用，GET 零下发；权重 0/1/2/3、加权满分 36、保底 A1（TASK-0065）；详见其 docs/ARCHITECTURE_PLACEMENT.md；改动需重启服务同步 |
 | 呀呀法语考级模拟卷 | tools/french-learner/data/input/exam_papers.json | JSON（2 套原创卷 delf_b2_01/tcf_b2_01，每套 8 题） | 内容角色原创编写 | backend/exam.py 启动加载、进程内缓存 | 入 git；原创模拟非官方真题；四类敏感字段 GET 白名单投影零下发、重复交卷不幂等；详见其 docs/ARCHITECTURE_EXAM.md；改动需重启服务同步 |
 | 呀呀法语 Whisper 模型缓存 | C:\Users\Karen\.cache\huggingface\hub\models--Systran--faster-whisper-tiny | 模型权重（~75MB） | faster-whisper 首次加载自动下载 | asr_service/server.py | 不入 git；已下载则离线可用；换模型改 YAYA_ASR_MODEL 环境变量 |
 
@@ -70,6 +70,7 @@
 | WorkBuddy 多账号管理数据 | tools/workbuddy-multi-account/workbuddy.db | SQLite（accounts/chat_messages/checkin_records/settings 四表） | server.py：启动时自动初始化 | server.py + 前端 | 不入 git（.gitignore）；含测试/账号数据；结构定义在 models.py，删库后重启自动重建 |
 | WorkBuddy 凭据快照 | tools/workbuddy-multi-account/credentials/<account_id>.info | JSON（客户端凭据原样复制，含 accessToken） | account_service.bind_account：添加账号时从客户端凭据文件复制 | workbuddy_client：构建 Bearer 请求 | 不入 git（.gitignore）；**含登录态 token，严禁入库**；失效后客户端重新登录并调 POST /api/accounts/{id}/refresh；DELETE 账号时同步删除（TASK-0045） |
 | WorkBuddy 运行日志 | data/output/workbuddy-multi-account/*.log | 文本（追加式） | server.py 输出 | 人 | 不入 git；排查问题用 |
+| 端口事实文件 | data/cache/workbuddy-multi-account/port.json | JSON（schema/service/port/pid/url/health/started_at） | server.py：bind+listen 成功后原子写，退出时按 pid 清理 | cleanup_old_service.ps1、open_browser.ps1 | 不入 git；端口唯一事实来源，浏览器必须校验 `/health` 的 service 字段后才打开；stale 文件一律拒绝（TASK-0052） |
 | 客户端任务列表快照 | ~/.workbuddy/<uid>/sidebar-list-snapshot.json | JSON（version/savedAt/items[]，每项含 id/title/state/updatedAt/lastActivityAt/space） | WorkBuddy 客户端写；TASK-0037 切号时合入目标 uid | WorkBuddy 客户端 UI（侧边栏任务列表） | **客户端私有数据，不在本仓库**；uid 与工具账号映射见凭据快照 account.uid；写入须停机+备份+原子替换；详情见 tools/workbuddy-multi-account/README.md |
 | 客户端会话记录库 | ~/.workbuddy/workbuddy.db（sessions 表，按 user_id 隔离） | SQLite | WorkBuddy 客户端写；TASK-0037 迁移时 UPDATE user_id | WorkBuddy 客户端 | **客户端私有数据，不在本仓库**；有 wal/shm，写入须停机+备份；串号防护靠 UPDATE ... WHERE user_id=源 AND id IN 任务集 |
 | 任务快照迁移备份 | data/cache/workbuddy-multi-account/snapshots/<时间戳>/ | JSON + SQLite 副本 | task_snapshot_service 写前备份 | 迁移失败回滚 | 不入 git；写前备份 sidebar 快照与 workbuddy.db（含 wal/shm）|
