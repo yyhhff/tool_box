@@ -61,8 +61,8 @@ tool_box/
 | xhs_crawler | tools/xhs_crawler/ | server.py（Web）/ main.py（CLI） | Python 爬取指定博主、指定时间范围内的小红书博文，本地 Web 界面 + CLI | 待真机验收 | tools/xhs_crawler/README.md |
 | annual_report_reader | tools/annual_report_reader/ | server.py（Web，:5001）/ main.py（CLI）/ h1_2026.html（单页分析台） | 行业龙头年报带读（申万一级 31 行业龙头，GLM 或 --local 零 GLM 本地模式，记忆增量续跑）；扩展「2026 A股半年报分析台」六板块单页 | 31行业本地带读完成29家+横向对比（TASK-0046）；半年报分析台已发布 | README.md；半年报详见 h1_2026_docs/USER_GUIDE.md |
 | service_manager | tools/service_manager/ | server.py（Web，:5002） | Python 启动、重启、关闭服务，查看服务状态与日志 | 待真机验收 | tools/service_manager/README.md |
-| french-learner | tools/french-learner/ | start.bat 一键启动（后端 :8000 被占自动回退 8001-8019 + 本地语音 :8010；可离线直开 frontend/index.html） | 呀呀法语：Web 法语学习产品（重述式 AI 口语陪练 + i+1 分级输入 + CEFR 定级 + 生词卡 SM-2 复习 + 读音规则 + DELF/TCF 冲刺）；独立 Git 仓库 | 阶段 0-4、读音覆盖修复（词卡 97.8%）、生词卡重设计均已验收 | tools/french-learner/README.md（架构契约与 QA 报告在其 docs/） |
-| workbuddy-multi-account | tools/workbuddy-multi-account/ | server.py（FastAPI，bind-first 自定端口，专属段 8010-8029，事实文件 data/cache/workbuddy-multi-account/port.json） | WorkBuddy 多账号管理：多账号登录、自动签到、聊天记录合并与迁移、切号任务快照迁移、账号删除，Web 管理面板 | 进行中（端口/开错服务根治 TASK-0052；此前 TASK-0037/0041/0043/0044/0045 已完成） | tools/workbuddy-multi-account/README.md |
+| french-learner | tools/french-learner/ | start.bat 一键启动（后端 :8000 被占自动回退 8001-8019 + 本地语音 :8011；可离线直开 frontend/index.html） | 呀呀法语：Web 法语学习产品（重述式 AI 口语陪练 + i+1 分级输入 + CEFR 定级 + 生词卡 SM-2 复习 + 读音规则 + DELF/TCF 冲刺 + 面客建设里程图 + 留存激励 + 使用反馈收集）；独立 Git 仓库 | 阶段 0-4 及读音/成长/成就/留存反馈均已验收；面客路线图 6/6 点亮；Wave 0 地基已合并（后端 12 routers + 前端 js/ ES modules + worktree 脚本，A/B 行为一致） | tools/french-learner/README.md（总纲/认领看板见 docs/MASTER_PLAN.md；架构见 docs/ARCHITECTURE.md；Roadmap/FEEDBACK 见对应 docs） |
+| workbuddy-multi-account | tools/workbuddy-multi-account/ | server.py（FastAPI，bind-first 自定端口，专属段 8010-8029，事实文件 data/cache/workbuddy-multi-account/port.json） | WorkBuddy 多账号管理：多账号登录、自动签到、聊天记录合并与迁移、切号任务快照迁移、账号删除，Web 管理面板 | 进行中（端口根治 TASK-0052；任务迁移诚实降级 TASK-0056；此前 TASK-0037/0041/0043/0044/0045 已完成） | tools/workbuddy-multi-account/README.md |
 
 ## 常见需求 → 改动点定位
 

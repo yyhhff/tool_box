@@ -15,13 +15,22 @@
 | TASK-0028 | tool_box 全局 | 夜班自动化 NightOps（23:00–09:00 无人值守迭代） | 高 | 进行中（章程/任务池/Cron/演练已落地，待首夜实战验证） | tasks/active/TASK-0028-night-ops.md |
 | TASK-0029 | french-learner | 逐词点击学发音 + 连读教学（例句/短语） | 中 | 进行中（浏览器真机验收三步全过：token→单词卡/连读卡/零回归，待验收） | tasks/active/TASK-0029-linking-teaching.md |
 | TASK-0032 | french-learner | 读音学习交互重构：贴词气泡 + 连读内嵌（取代模态跳转） | 高 | 进行中（浏览器真机四步全过：气泡原地/外点关闭/再点收起/内嵌展开收起/完整讲解回位，待用户验收） | tasks/active/TASK-0032-pron-inline-popover.md |
+| TASK-0063 | french-learner | 补强总纲 v2.2–v4.1 落地 + 多会话并行开发机制（MASTER_PLAN + 路线图灰态） | 高 | 进行中 | tasks/active/TASK-0063-master-plan-parallel.md |
 
 ## 归档记录
 
-> **编号说明**：TASK-0051、TASK-0052 各有两条不同项目的记录（历史并发领号重号遗留，分属 french-learner / annual_report_reader / workbuddy-multi-account）。为免破坏文档与经验库引用，不重命名；新任务一律走 `tasks/next_id.txt` 单一计数器，杜绝新增重号。
+> **编号说明**：TASK-0051、TASK-0052、TASK-0056 各有两条不同项目的记录（并发领号重号遗留）。为免破坏文档与经验库引用，不重命名；新任务一律走 `tasks/next_id.txt` 单一计数器。**注意：计数器的"读号→用号→写回"非原子，并行会话同时领号仍会重号（TASK-0056 于 2026-11-20 复发）；根治需加文件锁或由协调方统一发号。**
 
 | ID | 项目 | 任务 | 完成日期 | 归档位置 |
 |----|------|------|----------|----------|
+| TASK-0064 | french-learner | Wave 0 地基拆分（app.py→12 routers + app.js→ES modules + worktree 脚本，A/B 行为一致） | 2026-11-20 | tasks/archive/2026-11/TASK-0064-wave0-foundation.md |
+| TASK-0062 | french-learner | 使用反馈收集入口 v1：页脚按钮 + 方向+文字浮层 + 汇总端点 + 决策文档 | 2026-11-20 | tasks/archive/2026-11/TASK-0062-feedback-v1.md |
+| TASK-0061 | french-learner | 路线图 v2.1 点亮（留存深化闭环，6/6 全亮） | 2026-11-20 | tasks/archive/2026-11/TASK-0061-roadmap-v21-lightup.md |
+| TASK-0060 | french-learner | 留存激励 v1：今日小目标 + 接着上次 + 微进步 + streak 正向 | 2026-11-20 | tasks/archive/2026-11/TASK-0060-retention-v1.md |
+| TASK-0059 | french-learner | 面客建设里程图 v1：大版本主题闭环 + 点亮 | 2026-11-20 | tasks/archive/2026-11/TASK-0059-roadmap-v1.md |
+| TASK-0058 | french-learner | 成就系统 v1：真实事件判定 + GET /api/achievements | 2026-11-20 | tasks/archive/2026-11/TASK-0058-achievements-v1.md |
+| TASK-0057 | french-learner | SM-2 到期调度：待复习队列端点 GET /api/review/due + 前端到期入口 | 2026-11-20 | tasks/archive/2026-11/TASK-0057-review-due-scheduler.md |
+| TASK-0056 | workbuddy-multi-account | 任务迁移诚实降级：云端覆盖检测与明确提示 | 2026-11-20 | tasks/archive/2026-11/TASK-0056-migration-cloud-override-notice.md |
 | TASK-0055 | tool_box 全局 | 工作流提效与状态一致性（三态验收/单一编号/两次规则） | 2026-11-20 | tasks/archive/2026-11/TASK-0055-工作流提效与状态一致性.md |
 | TASK-0042 | annual_report_reader | h1_2026 分析台自检启动脚本（start.bat + selfcheck.py，22 项自检通过才打开页面） | 2026-11-20 | tasks/archive/2026-11/TASK-0042-h1-selfcheck-start.md |
 | TASK-0052 | workbuddy-multi-account | 根治端口漂移与自动打开错服务（bind-first + 端口事实文件 + 服务身份校验 + 专属段 8010-8029） | 2026-11-20 | tasks/archive/2026-11/TASK-0052-port-registry-root-fix.md |
@@ -71,3 +80,5 @@
 | TASK-0038 | french-learner | 分级阅读接入连读教学（逐句 + 整篇原文） | 2026-11-19 | tasks/archive/2026-11/TASK-0038-reading-linking.md |
 | TASK-0039 | french-learner | 连读块：删除内部整句行与整句示范按钮（去重复） | 2026-11-19 | tasks/archive/2026-11/TASK-0039-remove-inline-sent-dup.md |
 | TASK-0054 | french-learner | 页脚手动重温引导入口（reopenOnboarding） | 2026-11-20 | tasks/archive/2026-11/TASK-0054-onboarding-reopen.md |
+| TASK-0055 | french-learner | 水平画像 v1（skill_events+EWMA 懒计算+成长页五维卡） | 2026-11-20 | tasks/archive/2026-11/TASK-0055-skill-profile-v1.md |
+| TASK-0056 | french-learner | ASR 端口冲突根治：8010→8011（避开 WorkBuddy multi-account） | 2026-11-20 | tasks/archive/2026-11/TASK-0056-asr-port-8011.md |
