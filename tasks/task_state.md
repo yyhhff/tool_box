@@ -15,7 +15,7 @@
 | TASK-0028 | tool_box 全局 | 夜班自动化 NightOps（23:00–09:00 无人值守迭代） | 高 | 进行中（章程/任务池/Cron/演练已落地，待首夜实战验证） | tasks/active/TASK-0028-night-ops.md |
 | TASK-0029 | french-learner | 逐词点击学发音 + 连读教学（例句/短语） | 中 | 进行中（浏览器真机验收三步全过：token→单词卡/连读卡/零回归，待验收） | tasks/active/TASK-0029-linking-teaching.md |
 | TASK-0032 | french-learner | 读音学习交互重构：贴词气泡 + 连读内嵌（取代模态跳转） | 高 | 进行中（浏览器真机四步全过：气泡原地/外点关闭/再点收起/内嵌展开收起/完整讲解回位，待用户验收） | tasks/active/TASK-0032-pron-inline-popover.md |
-| TASK-0078 | french-learner | Wave 2 车道 B：v3.3 语法微卡（50 显性语法卡 + 阅读 chip/复习 banner/对话第 3 次推卡三嵌入） | 高 | 待集成（开发+自测完成：153 单测全绿 + GUI 冒烟三嵌入全过；真机验收待用户；⚠️ 分支基于 v3.0 合并前 006ece4，集成时先对齐 main） | tasks/active/TASK-0078-v3.3-grammar-cards.md |
+| TASK-0078 | french-learner | Wave 2 车道 B：v3.3 语法微卡（50 显性语法卡 + 阅读 chip/复习 banner/对话第 3 次推卡三嵌入） | 高 | 已完成（已归档：用户真机验收确认 + 集成点亮 2026-11-21） | tasks/archive/2026-11/TASK-0078-v3.3-grammar-cards.md |
 
 ## 归档记录
 
@@ -23,6 +23,7 @@
 
 | ID | 项目 | 任务 | 完成日期 | 归档位置 |
 |----|------|------|----------|----------|
+| TASK-0078 | french-learner | Wave 2 车道 B：v3.3 语法微卡（50 卡 + 三嵌入，对齐后合并，路线图点亮） | 2026-11-21 | tasks/archive/2026-11/TASK-0078-v3.3-grammar-cards.md |
 | TASK-0071 | french-learner | Wave 2 车道 B：v3.1 耳朵开口（听力强化：变速 + 精听 + 真实语速变体 1072 条，路线图点亮，merge c17f8e9） | 2026-11-21 | tasks/archive/2026-11/TASK-0071-v3.1-listening.md |
 | TASK-0079 | french-learner | Wave 2 车道 A：v3.0 每天十五分钟（今日三件事 + XP 等级 + 真猫贴纸陪伴态，路线图点亮） | 2026-11-21 | tasks/archive/2026-11/TASK-0079-v3.0-daily-path.md |
 | TASK-0069 | french-learner | Wave 1 收尾：v2.3 批次续跑（四轮补量至 106 篇四档各 ≥20 + 音频 536 条 + 抽检 0/5 误放，路线图 v2.3 点亮） | 2026-11-21 | tasks/archive/2026-11/TASK-0069-v2.3-batch-continue.md |
