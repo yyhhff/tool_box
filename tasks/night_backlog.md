@@ -1,21 +1,25 @@
 # 夜班任务池（night_backlog）
 
 > **用途**：每晚 23:00 夜班总指挥巡库后刷新本文件（章程见 `docs/night_ops.md` 第 4 节），白天用户也可往里添加想让我夜间做的事。
-> **规则**：每晚启动时全量刷新（不是追加）；条目编号 NB-NNN 每晚从 NB-001 重新计；"来源"写白名单文档路径；级别=实施（可直接做）/ 提案（超范围，只写方案）。
+> **规则**：每晚启动时全量刷新（不是追加）；条目编号 NB-NNN 每晚从 NB-001 重新计；"来源"写白名单文档路径；级别=实施（可直接做）/ 提案（超范围，只写方案）/ 观察（让路或记录）。
 
 ## 今晚任务池
 
-> 2026-11-19 演练巡库刷新（ drill ）。巡库摘要：5 个子工具均**无自有测试**；python 环境无 pytest（约定夜间测试一律用标准库 unittest，零环境改动）；xhs_crawler 4 个活动任务均"待真机验收"，受红线 2.3 约束夜间不可真机推进。
+> 2026-11-20 23:0x 首启巡库。摘要：service_manager 19/19 绿、french-learner pron_coach 15/15 绿；workbuddy 处并行会话工作现场（暂缓全线）；annual_report_reader / xhs_crawler 无测试（补测任务有效）。
 
 | 编号 | 项目 | 描述 | 来源 | 级别 | 优先级 | 状态 |
 |------|------|------|------|------|--------|------|
-| NB-001 | service_manager | 补 service_manager.py 单元测试（state 往返/get_status 自纠/停止幂等/端口判定，mock psutil） | 巡库红测扫描 + README 行为契约 | 实施 | 高 | 已完成（TASK-0030，19 例全绿，2026-11-19 演练） |
-| NB-002 | 全部 | 各工具补 unittest 覆盖（夜班常规任务源，按工具轮转：annual_report_reader → xhs_crawler 纯逻辑 → workbuddy） | 巡库 | 实施 | 高 | 待排产 |
-| NB-003 | workbuddy-multi-account | TASK-0024 遗留项之 Web 前端（管理面板） | tasks/active/TASK-0024 | 实施 | 中 | 待排产 |
-| NB-004 | annual_report_reader | 补 fetcher/extractor 纯逻辑单测（不触网、不调 GLM） | 巡库 + TASK-0026 无测试资产 | 实施 | 中 | 待排产 |
-| NB-005 | xhs_crawler | TASK-0005/0006/0007 真机验收——**夜间不可做（红线 2.3）**，只可做 mock 测试与静态检查 | 看板活动任务 | 提案 | 低 | 晨起定夺 |
-| NB-006 | service_manager | _load_state 容错：补缺失服务默认键 + JSON 损坏时备份原文件并重建默认结构（方案经总指挥推荐、用户未否决；晨起夜报可否决回滚） | TASK-0030 子 agent 发现的真实缺陷 | 实施 | 高 | 待今晚实施 |
+| NB-001 | service_manager | `_load_state` 容错：补缺失服务默认键 + JSON 损坏时备份原文件并重建默认结构（昨 NB-006 转正，属优化项，用户指示直接实施） | TASK-0030 子 agent 发现的真实缺陷 | 实施 | 高 | 已完成（TASK-0070，22 例绿，2026-11-20 夜班） |
+| NB-002 | annual_report_reader | 补 fetcher/extractor 纯逻辑 unittest（不触网、不调 GLM） | 巡库：无测试资产 | 实施 | 中高 | 已完成（TASK-0071，101 例绿，2026-11-20 夜班） |
+| NB-003 | xhs_crawler | 纯逻辑 mock 测试（登录双信号判定/风控熔断等 TASK-0006/0007 逻辑单元，**不真机**） | 巡库 + 红线 2.3 | 实施 | 中 | 待排产 |
+| NB-004 | french-learner | backend/tests 缺 `__init__.py`，`unittest discover` 不可导入（现用 `python -m unittest tests.test_pron_coach` 可跑，15 例绿）；补 `__init__.py` 使两种方式兼容 | 巡库发现 | 实施 | 低 | 待排产（小件） |
+| NB-005 | workbuddy-multi-account | **并行会话现场**：TASK-0052 端口注册表根治未提交（10 文件 M + port_registry.py 未跟踪）+ TASK-0068/0069 已领号 → 夜班让路，workbuddy 全线暂缓至现场提交 | §6.1 基线观察 | 观察 | - | 让路 |
+| NB-006 | xhs_crawler | TASK-0005/0006/0007 真机验收——**夜间禁区（红线 2.3）** | 看板活动任务 | 提案 | 低 | 晨起定夺 |
+| NB-007 | french-learner | TASK-0029/0032 待用户真机验收（夜间不碰）；TASK-0068/0069 并行会话进行中（不碰） | 看板 | 观察 | - | 不碰 |
+
+**任务池耗尽预案**（§4.3）：深度巡库 → 智能生成提案：优化项直接实施 / 新增需求写入本表提案行等用户排期。
 
 ## 历史参考
 
 - 每晚执行结果见 `tasks/night_reports/YYYY-MM-DD.md`；blocked 项的处理建议也记录在夜报中。
+- 2026-11-19 演练：service_manager 单测 19 例落地（TASK-0030，已归档）。
