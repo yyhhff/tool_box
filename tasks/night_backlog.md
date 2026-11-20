@@ -26,7 +26,7 @@
 | 编号 | 项目 | 描述 | 级别 | 规模 | 状态 |
 |------|------|------|------|------|------|
 | OP-01 | service_manager | server.py 6 条 Flask 路由 test_client 测试（照 xhs_crawler 先例） | 实施 | S | 已完成（TASK-0073，22 例绿；附带证实 /api/logs 必 500 缺陷待白天修） |
-| OP-02 | annual_report_reader | memory.py save/record 系补测（mock CONFIG_PATH/INDEX_PATH 模式已成熟） | 实施 | M | 待排产 |
+| OP-02 | annual_report_reader | memory.py save/record 系补测（mock CONFIG_PATH/INDEX_PATH 模式已成熟） | 实施 | M | 已完成（TASK-0074，17 例绿，三常量齐 mock 发现） |
 | OP-03 | annual_report_reader | server.py 6 路由 test_client 测试（mock industry.select/_run_pipeline） | 实施 | M | 待排产 |
 | OP-04 | annual_report_reader | analyzer.py GLM 链路 mock 测试（mock OpenAI client，零真实调用） | 实施 | M | 待排产 |
 | OP-05 | french-learner | backend 批 1：srs.py（SM-2 纯函数）+ assessment.py 判分（与 texts.json 现场零冲突，只新增 tests 文件） | 实施 | S-M | 待排产 |
