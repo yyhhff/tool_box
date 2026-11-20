@@ -15,7 +15,7 @@
 | TASK-0028 | tool_box 全局 | 夜班自动化 NightOps（23:00–09:00 无人值守迭代） | 高 | 进行中（章程/任务池/Cron/演练已落地，待首夜实战验证） | tasks/active/TASK-0028-night-ops.md |
 | TASK-0029 | french-learner | 逐词点击学发音 + 连读教学（例句/短语） | 中 | 进行中（浏览器真机验收三步全过：token→单词卡/连读卡/零回归，待验收） | tasks/active/TASK-0029-linking-teaching.md |
 | TASK-0032 | french-learner | 读音学习交互重构：贴词气泡 + 连读内嵌（取代模态跳转） | 高 | 进行中（浏览器真机四步全过：气泡原地/外点关闭/再点收起/内嵌展开收起/完整讲解回位，待用户验收） | tasks/active/TASK-0032-pron-inline-popover.md |
-| TASK-0070 | french-learner | Wave 2 车道 A：v3.0 每日十五分钟（今日任务视图 + 游戏化内核） | 高 | 进行中（方案已提交待确认） | tasks/active/TASK-0070-v3.0-daily-path.md |
+| TASK-0079 | french-learner | Wave 2 车道 A：v3.0 每天十五分钟（今日三件事 + XP 等级 + 呀呀陪伴态） | 高 | 进行中（开发+128 单测+集成门完成 merge dfd1832，路线图 active，待用户真机验收） | tasks/active/TASK-0079-v3.0-daily-path.md |
 | TASK-0071 | french-learner | Wave 2 车道 B：v3.1 耳朵开口（听力强化：变速 + 精听 + 真实语速适应） | 高 | 进行中（方案已确认，开发中） | tasks/active/TASK-0071-v3.1-listening.md |
 | TASK-0078 | french-learner | Wave 2 车道 B：v3.3 语法微卡（40+ 显性语法卡 + 阅读/复习双嵌入 + recast 同类错误第 3 次自动推卡） | 高 | 进行中（方案待确认） | tasks/active/TASK-0078-v3.3-grammar-cards.md |
 
