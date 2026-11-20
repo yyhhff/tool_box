@@ -23,7 +23,7 @@
 - [2026-11-17]（TASK-0010）定位服务进程别只认端口：端口可能未监听（假死）或被 PID 复用；用「记录 PID（脚本路径二次校验）→ 命令行脚本路径 → 端口」三级兜底；停止时连子进程树一起清理（children(recursive=True)），再 terminate→超时 kill
 - [2026-11-17]（TASK-0010）重启逻辑别把"先停止成功"当硬前置：服务本就停止时停止会返回失败，导致重启直接中止；应先尽力停止、不检查其返回值，再执行启动
 - [2026-11-17]（TASK-0017）Windows + MITM 代理环境下 git 走 HTTPS 报 `CRYPT_E_NO_REVOCATION_CHECK`：`http.schannelCheckRevoke=false` 在此环境无效；根治是改用 openssl 后端并从 Windows 证书库导出系统 CA（Root/CA 存储导出为 PEM）配 `http.sslCAInfo`（写到仓库 local 配置，别改全局）；CA 文件放持久目录如 `~/.git-ca-bundle-wb.pem`，别放 %TEMP%
-- [2026-11-17]（TASK-0017）国内连 GitHub：22 端口常被拒，走 SSH over 443（`git@ssh.github.com:owner/repo.git` + `core.sshCommand="ssh -p 443 ..."`）可通；CI/沙箱禁 GUI 弹窗时，HTTPS + 凭据管理器（credential.helper=manager）会卡死，SSH key + BatchMode 非交互才是可自动化方案
+- [2026-11-17]（TASK-0017）国内连 GitHub：22 端口常被拒，走 SSH over 443（`git@ssh.github.com:owner/repo.git` + `core.sshCommand="ssh -p 443 ..."`）可通；CI/沙箱禁 GUI 弹窗时，HTTPS + 凭据管理器（credential.helper=manager）会卡死，SSH key + BatchMode 非交互才是可自动化方案；注意 `core.sshCommand` 是**仓级**配置——每个新建仓都要复制同款（`ssh -i <key> -p 443 -o StrictHostKeyChecking=accept-new -o BatchMode=yes`），否则新仓走默认 22 端口报 Host key verification failed，老仓能推新仓不能推时先 diff 两仓 `git config --local --list`
 - [2026-11-17]（TASK-0018）提供 `.env.example` 模板的项目必须同时忽略真实 `.env`（`.gitignore` 加 `.env` + `.env.*`，再用 `!/.env.example` / `!/path/.env.example` 放行模板）；否则用户填入真实 key 后 `git add .` 直接泄露；用 `git check-ignore -v` 验证"真实 env 被忽略、模板未被忽略"两侧都成立
 - [2026-11-17]（TASK-0018）清理"过时"产物前先 grep 全仓引用：看似冗余的历史文件（如 v1 原型 demo.html）常被 README/文档/代码注释当作基线或数据来源引用，直接删会破坏一致性；无引用才可删
 - [2026-11-19]（TASK-0020）含中文的 Windows .bat 必须 GBK + CRLF 落盘：LF-only 会让 cmd 解析多字节内容时字节错位直接崩溃；AI 文本工具默认写 UTF-8 也会让中文乱码——改批处理别用 UTF-8 编辑器直改，用原编码读写做精准替换（如 Python `decode('gbk')→replace→encode('gbk')`，每处替换校验命中数），改完跑最小测试桩验证解析
