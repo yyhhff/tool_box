@@ -29,7 +29,7 @@
 | OP-02 | annual_report_reader | memory.py save/record 系补测（mock CONFIG_PATH/INDEX_PATH 模式已成熟） | 实施 | M | 已完成（TASK-0074，17 例绿，三常量齐 mock 发现） |
 | OP-03 | annual_report_reader | server.py 6 路由 test_client 测试（mock industry.select/_run_pipeline） | 实施 | M | 待排产 |
 | OP-04 | annual_report_reader | analyzer.py GLM 链路 mock 测试（mock OpenAI client，零真实调用） | 实施 | M | 待排产 |
-| OP-05 | french-learner | backend 批 1：srs.py（SM-2 纯函数）+ assessment.py 判分（与 texts.json 现场零冲突，只新增 tests 文件） | 实施 | S-M | 待排产 |
+| OP-05 | french-learner | backend 批 1：srs.py（SM-2 纯函数）+ assessment.py 判分（与 texts.json 现场零冲突，只新增 tests 文件） | 实施 | S-M | 已完成（TASK-0075，63 例绿，7 项缺陷清单待白天裁定） |
 | OP-06 | french-learner | backend 批 2：ai.py recast 降级判定表 9 条逐条覆盖（urllib 全 mock） | 实施 | M | 待排产 |
 | OP-07 | french-learner | backend 批 3：exam.py 判分/敏感字段投影/重复交卷幂等（GLM mock） | 实施 | M | 待排产 |
 | OP-08 | french-learner | backend 批 4：pronunciation.py 规则加载校验 + db.py tmp DB CRUD | 实施 | M | 待排产 |
