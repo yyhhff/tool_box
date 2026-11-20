@@ -24,16 +24,24 @@ tool_box/
 │   ├── project_content.md    # 项目地图：结构 + 改动点定位
 │   ├── data_content.md       # 数据地图：数据文件 + 流向
 │   ├── git_guide.md          # Git 使用命令文档
-│   └── lessons.md            # 经验库：跨项目可复用的通用经验
+│   ├── night_ops.md          # 夜班章程（23:00-09:00 无人值守自动迭代）
+│   ├── night_ops_user_guide.md  # 夜班使用说明（人读）
+│   ├── lessons.md            # 经验库：跨项目可复用的通用经验
+│   └── workbuddy_*.md 等     # WorkBuddy 分析与设计文档
 ├── tasks/
 │   ├── task_state.md         # 任务看板（活动任务索引 + 归档记录）
+│   ├── next_id.txt           # 任务编号单一计数器（领号取当前值并 +1 写回）
 │   ├── _TEMPLATE.md          # 任务文件模板
+│   ├── night_backlog.md      # 夜班任务池（每晚巡库刷新）
+│   ├── night_reports/        # 夜报目录（每晚收口产物）
 │   ├── active/               # 进行中的任务文件
 │   └── archive/              # 已完成任务归档（按 YYYY-MM 分目录）
-│       └── 2026-11/
-│           └── TASK-0001-project-init.md
 ├── tools/
 │   ├── xhs_crawler/          # 小红书博文爬取工具
+│   ├── annual_report_reader/ # 行业龙头年报带读工具
+│   ├── service_manager/      # 服务管理工具（启动/重启/关闭服务）
+│   ├── french-learner/       # 呀呀法语：Web 法语学习产品（独立 Git 仓库）
+│   ├── workbuddy-multi-account/  # WorkBuddy 多账号管理工具
 │   └── _template/            # 新工具脚手架
 │       ├── README.md
 │       └── main.py

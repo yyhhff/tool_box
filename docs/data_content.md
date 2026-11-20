@@ -41,6 +41,7 @@
 | 巨潮 orgId 映射 | data/cache/annual_report_reader/orgids.json | JSON（代码 → orgId） | fetcher：巨潮 topSearch | fetcher | 不入 git；缓存避免重复查询 |
 | 半年报分析台六张数据表 | data/output/h1_2026/h1_2026_{market,chain_link,double_growth,chain_company,watch,macro}.csv | CSV（UTF-8 BOM） | data-engineer：真实检索 + 授权数据回填 | 资料库 database 节点 + 单页 HTML | 不入 git；行数与表头/口径见 h1_2026_docs/CONTRACT.md |
 | 半年报分析台快照 | data/output/h1_2026/SNAPSHOT_DATA.json | JSON（六键对象数组） | data-engineer：与六 CSV 同步生成 | h1_2026.html 内嵌离线快照 | 不入 git；SDK 不可用时兜底渲染 |
+| 半年报 NeoData 直连指标缓存 | data/output/h1_2026/h1_2026_neodata_p1.json | JSON（104 codes 原始指标，含 _meta 头） | data-engineer：NeoData 直连抓取 | 六 CSV 回填与锚点审计 | 不入 git；与六 CSV 同目录（2026-11-21 夜班巡库补登） |
 | 半年报分析台单页 | tools/annual_report_reader/h1_2026.html | HTML（单文件全内联） | frontend-dev + 总指挥回填数据/DB ID | 资料库 page `yW9mpdOLsoy5AlL7dUALWI` + 发布页 | 入 git；资源零外链、数据全内嵌、含免责声明；使用说明见 h1_2026_docs/USER_GUIDE.md |
 | 半年报分析台文档集 | tools/annual_report_reader/h1_2026_docs/（CONTRACT/DATA_FINANCE/DATA_MACRO/QA_REPORT/USER_GUIDE/GAP_ANALYSIS/REALTIME_AND_COST.md） | Markdown | pm / 数据研究员 / QA / 架构师 / 产品文档 | 全角色 + 人 | 入 git；数据契约与口径、35 条验收、对标差距、实时化与成本方案，详情见各文件 |
 
@@ -58,10 +59,11 @@
 | 呀呀法语对话脚本（历史原型） | tools/french-learner/demo.html（内嵌 SCENARIOS） | JS 对象 | 内置于 Demo | demo.html 前端交互 | 入 git；历史单文件原型，保留供对照 |
 | 呀呀法语应用数据库 | tools/french-learner/backend/data/yaya.db | SQLite（多表：核心 9 + 输入流/画像/成就/反馈等增量表） | backend/seed.py 首次启动灌入；seed_input.py 同步语料；app.py 运行时读写 | backend/app.py API | 不入 git；删库重启自动重建种子数据；表结构见其 docs/ARCHITECTURE*.md。成就判定落 achievements 表（UNIQUE user_id+code，TASK-0058）；用户反馈落 feedback 表（预设方向 category+文字 content+可选 contact，TASK-0062，汇总驱动版本决策） |
 | 呀呀法语架构与章程 | tools/french-learner/docs/ | Markdown（架构契约、章程、QA 报告等） | 架构师 / PM / 测试 | 前后端开发、独立验收 | 入 git；契约 v1/v2、定级/考级契约与安全红线、QA 报告，详情见各文件 |
-| 呀呀法语分级语料 | tools/french-learner/data/input/texts.json | JSON（65 篇，A1 44 + A2/B1/B2 各 7） | 内容角色原创编写 + v2.3 内容工厂 AI 生成经审校入库 | seed_input.py 启动加载入 input_* 三表 | 入 git；原创教学示例，CEFR 为教学标注；A1 十篇为 v2.2 零基础批次（TASK-0065），另 34 篇为 v2.3 内容工厂产出（id gen_a1_*，AI 审校标注 reviewed_by，TASK-0066）；改动需重启服务同步 |
+| 呀呀法语分级语料 | tools/french-learner/data/input/texts.json | JSON（106 篇：A1=44/A2=21/B1=21/B2=20，含逐句 audio_url） | 内容角色原创编写 + v2.3 内容工厂 AI 生成经审校入库 | seed_input.py 启动加载入 input_* 三表 | 入 git；原创教学示例，CEFR 为教学标注；A1 十篇为 v2.2 零基础批次（TASK-0065），gen_* 均为内容工厂产出（AI 审校留审计，TASK-0066/0069，批次 1 达成）；改动需重启服务同步 |
 | 呀呀法语定级题库 | tools/french-learner/data/input/assessment_questions.json | JSON（v2，24 题四档 A1/A2/B1/B2 各 6，每档词汇/语法/理解各 2） | 内容角色原创编写 | backend/assessment.py 启动加载、进程内缓存 | 入 git；原创教学示例非官方真题；answer_idx/explanation_zh 仅服务端判分用，GET 零下发；权重 0/1/2/3、加权满分 36、保底 A1（TASK-0065）；详见其 docs/ARCHITECTURE_PLACEMENT.md；改动需重启服务同步 |
 | 呀呀法语考级模拟卷 | tools/french-learner/data/input/exam_papers.json | JSON（2 套原创卷 delf_b2_01/tcf_b2_01，每套 8 题） | 内容角色原创编写 | backend/exam.py 启动加载、进程内缓存 | 入 git；原创模拟非官方真题；四类敏感字段 GET 白名单投影零下发、重复交卷不幂等；详见其 docs/ARCHITECTURE_EXAM.md；改动需重启服务同步 |
 | 呀呀法语发音教练难点句库 | tools/french-learner/data/input/pron_coach_focus.json | JSON（100 句，5 标签 y_vs_u/nasal/r/elision/liaison） | 内容角色原创编写 | backend/pron_coach.py 选句器加载、进程内缓存 | 入 git；v3.2 发音教练难点句，每句 fr/cn/cefr/tags/focus_word；三池选句器另一池复用 texts.json 逐句、词卡池复用 word_cards；改动需重启服务同步（TASK-0067） |
+| 呀呀法语读音规则库 | tools/french-learner/data/input/pronunciation_rules.json | JSON（读音规则 patterns，v1.1 后未动） | 内容角色原创编写（TASK-0027 读音覆盖修复） | backend/pronunciation.py INPUT_FILE 启动加载 | 入 git；读音规则与覆盖 97.8% 的数据底座；改动需重启服务同步（2026-11-21 夜班巡库补登） |
 | 呀呀法语内容工厂缓存 | tools/french-learner/data/cache/content_pipeline/（demand_queue / candidates / validation_reports / review_audit.jsonl / audio/） | JSON + JSONL + MP3 | content_pipeline CLI（demand/gen/validate/review/audio） | review_store 审校入库 + content_review router 取音 | 不入 git；需求队列/候选/校验报告/审计日志/批量音频；人审是入库唯一通道，AI 审校亦留审计；断点续跑；契约见其 docs/PIPELINE.md（TASK-0066） |
 | 呀呀法语 Whisper 模型缓存 | C:\Users\Karen\.cache\huggingface\hub\models--Systran--faster-whisper-tiny | 模型权重（~75MB） | faster-whisper 首次加载自动下载 | asr_service/server.py | 不入 git；已下载则离线可用；换模型改 YAYA_ASR_MODEL 环境变量；word_ts=1 词级时间戳见 TASK-0067 |
 

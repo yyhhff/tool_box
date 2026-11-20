@@ -2,7 +2,7 @@
 
 > **用途**：接到需求后先查本文件，定位改动点，再动手。
 > **维护规则**：新增/删除/变更任何工具或目录后，必须同步更新本文件（见 AGENTS.md 硬性规则）。
-> 最后更新：2026-11-19
+> 最后更新：2026-11-21
 
 ## 地图维护原则（TASK-0025 起生效）
 
@@ -23,7 +23,11 @@ tool_box/
 │   ├── data_content.md       # 数据地图
 │   ├── git_guide.md          # Git 使用命令文档
 │   ├── night_ops.md          # 夜班章程（23:00-09:00 无人值守自动迭代，TASK-0028）
-│   └── lessons.md            # 经验库：跨项目通用经验
+│   ├── night_ops_user_guide.md  # 夜班使用说明（人读，快速开始/常见问题）
+│   ├── lessons.md            # 经验库：跨项目通用经验
+│   ├── workbuddy_mvp_design.md          # WorkBuddy MVP 设计文档
+│   ├── workbuddy_multi_account_analysis.md  # WorkBuddy 多账号分析
+│   └── multi_account_tools_analysis.md      # 多账号工具调研
 ├── tasks/
 │   ├── task_state.md         # 任务看板（活动任务索引 + 归档记录）
 │   ├── next_id.txt           # 任务编号单一计数器（领号取当前值并 +1 写回）
@@ -34,6 +38,10 @@ tool_box/
 │   └── archive/              # 已完成任务归档（按 YYYY-MM 分目录）
 ├── tools/
 │   ├── xhs_crawler/          # 小红书博文爬取（详见下方工具索引）
+│   ├── annual_report_reader/ # 行业龙头年报带读（详见下方工具索引）
+│   ├── service_manager/      # 服务管理工具（详见下方工具索引）
+│   ├── french-learner/       # 呀呀法语：Web 法语学习产品（独立 Git 仓库）
+│   ├── workbuddy-multi-account/  # WorkBuddy 多账号管理（详见下方工具索引）
 │   └── _template/            # 新工具脚手架（README + main.py）
 ├── shared/                   # 跨工具公共代码
 └── data/
