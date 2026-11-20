@@ -22,6 +22,7 @@ r"""service_manager 单元测试（标准库 unittest，无第三方测试框架
 - psutil 为既有依赖，测试只引用其异常类型，不安装任何包。
 """
 
+import io
 import json
 import sys
 import tempfile
@@ -326,6 +327,80 @@ class TestIsOurServiceProcess(ServiceManagerTestBase):
         proc = self.fake_proc(cmdline=["python", XHS_SCRIPT])
         self.assertFalse(mgr._is_our_service_process(proc, "ghost"))
         proc.cmdline.assert_not_called()
+
+
+class TestLoadStateFaultTolerance(ServiceManagerTestBase):
+    """覆盖 9：_load_state 容错（JSON 损坏备份重建 / 顶层非对象兜底 / 缺服务键补默认）"""
+
+    def _expected_default_state(self):
+        """全部已配置服务的默认停止结构（与 _load_state 重建结果对照）"""
+        return {service_id: {"running": False, "process": None, "error": None}
+                for service_id in ServiceManager.SERVICES}
+
+    def _corrupt_backups(self):
+        """列出临时 CACHE_DIR 下的损坏备份文件"""
+        return list(self.cache_dir.glob("services.json.corrupt-*.bak"))
+
+    def test_corrupt_json_backed_up_then_rebuilt(self):
+        """JSON 损坏：不抛异常，重建默认状态，原文件重命名为 .bak 且内容为损坏原文"""
+        corrupt_text = '{"xhs_crawler": {"running": True,'  # 截断即损坏
+        self.cache_dir.mkdir(parents=True, exist_ok=True)
+        self.state_file.write_text(corrupt_text, encoding="utf-8")
+
+        with mock.patch("sys.stdout", new=io.StringIO()) as fake_out:
+            mgr = self.make_manager()  # 不应抛 JSONDecodeError
+
+        expected = self._expected_default_state()
+        self.assertEqual(mgr.state, expected)
+        # 中文警示已打印
+        self.assertIn("状态文件损坏", fake_out.getvalue())
+        self.assertIn("已重建默认状态", fake_out.getvalue())
+        # 原文件已被重命名移走：备份文件存在且内容为损坏原文，
+        # 当前 services.json 内容为重建的默认结构（而非损坏原文）
+        backups = self._corrupt_backups()
+        self.assertEqual(len(backups), 1)
+        self.assertEqual(backups[0].read_text(encoding="utf-8"), corrupt_text)
+        # 重建后的默认状态已落盘
+        self.assertEqual(self.read_persisted_state(), expected)
+
+    def test_top_level_non_dict_treated_as_corrupt(self):
+        """JSON 合法但顶层不是对象（如列表）：同样按损坏处理，备份后重建默认状态"""
+        original_text = '["not", "a", "dict"]'
+        self.cache_dir.mkdir(parents=True, exist_ok=True)
+        self.state_file.write_text(original_text, encoding="utf-8")
+
+        with mock.patch("sys.stdout", new=io.StringIO()):
+            mgr = self.make_manager()  # 不应抛 AttributeError
+
+        expected = self._expected_default_state()
+        self.assertEqual(mgr.state, expected)
+        backups = self._corrupt_backups()
+        self.assertEqual(len(backups), 1)
+        self.assertEqual(json.loads(backups[0].read_text(encoding="utf-8")),
+                         ["not", "a", "dict"])
+        self.assertEqual(self.read_persisted_state(), expected)
+
+    def test_missing_service_key_filled_with_default(self):
+        """JSON 正常但缺一个服务键：缺失键补默认结构，已有键数据原样保留并落盘"""
+        preset = {"xhs_crawler": {"running": True, "process": 2222,
+                                  "error": "自定义值须保留"}}
+        self.write_state_file(preset)
+
+        mgr = self.make_manager()
+
+        # 已有键数据不变（running=True 的自定义值保留）
+        self.assertEqual(mgr.state["xhs_crawler"],
+                         {"running": True, "process": 2222, "error": "自定义值须保留"})
+        # 缺失键补默认结构
+        self.assertEqual(mgr.state["annual_report_reader"],
+                         {"running": False, "process": None, "error": None})
+        # 补键后落盘：文件含全部已配置服务键
+        persisted = self.read_persisted_state()
+        self.assertEqual(set(persisted), set(ServiceManager.SERVICES))
+        self.assertEqual(persisted["xhs_crawler"],
+                         {"running": True, "process": 2222, "error": "自定义值须保留"})
+        self.assertEqual(persisted["annual_report_reader"],
+                         {"running": False, "process": None, "error": None})
 
 
 if __name__ == "__main__":

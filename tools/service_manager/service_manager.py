@@ -38,14 +38,37 @@ class ServiceManager:
         self._load_state()
 
     def _load_state(self) -> None:
-        """加载服务状态"""
+        """加载服务状态（容错：文件缺失用默认结构；缺服务键补默认；损坏先备份再重建）"""
+        default_state = {service_id: {"running": False, "process": None, "error": None}
+                         for service_id in self.SERVICES.keys()}
         state_file = CACHE_DIR / "services.json"
-        if state_file.exists():
+        if not state_file.exists():
+            self.state = default_state
+            return
+
+        try:
             with open(state_file, "r", encoding="utf-8") as f:
-                self.state = json.load(f)
-        else:
-            self.state = {service_id: {"running": False, "process": None, "error": None}
-                          for service_id in self.SERVICES.keys()}
+                loaded = json.load(f)
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            loaded = None
+
+        if not isinstance(loaded, dict):
+            # JSON 损坏（解析失败/编码错误/顶层非对象）：先备份原文件再重建默认状态
+            backup_file = CACHE_DIR / (
+                f"services.json.corrupt-{time.strftime('%Y%m%d-%H%M%S')}.bak")
+            state_file.rename(backup_file)
+            print(f"[service_manager] 状态文件损坏，已备份为 {backup_file}，已重建默认状态")
+            self.state = default_state
+            self._save_state()
+            return
+
+        self.state = loaded
+        # JSON 正常但缺服务键：为缺失服务补默认结构，已有键数据原样保留，补键后落盘
+        missing = {service_id: {"running": False, "process": None, "error": None}
+                   for service_id in self.SERVICES.keys() if service_id not in loaded}
+        if missing:
+            self.state.update(missing)
+            self._save_state()
 
     def _save_state(self) -> None:
         """保存服务状态"""
