@@ -15,8 +15,7 @@
 | TASK-0028 | tool_box 全局 | 夜班自动化 NightOps（23:00–09:00 无人值守迭代） | 高 | 进行中（章程/任务池/Cron/演练已落地，待首夜实战验证） | tasks/active/TASK-0028-night-ops.md |
 | TASK-0029 | french-learner | 逐词点击学发音 + 连读教学（例句/短语） | 中 | 进行中（浏览器真机验收三步全过：token→单词卡/连读卡/零回归，待验收） | tasks/active/TASK-0029-linking-teaching.md |
 | TASK-0032 | french-learner | 读音学习交互重构：贴词气泡 + 连读内嵌（取代模态跳转） | 高 | 进行中（浏览器真机四步全过：气泡原地/外点关闭/再点收起/内嵌展开收起/完整讲解回位，待用户验收） | tasks/active/TASK-0032-pron-inline-popover.md |
-| TASK-0063 | french-learner | 补强总纲 v2.2–v4.1 落地 + 多会话并行开发机制（MASTER_PLAN + 路线图灰态） | 高 | 进行中 | tasks/active/TASK-0063-master-plan-parallel.md |
-| TASK-0066 | french-learner | Wave 1 车道 B：v2.3 内容工厂（语料量产管线 + AI 审校 + 音频批量） | 高 | 进行中（产线已合并 main merge 9d96e60；A1 34 篇入库/117 句音频，200+ 全量产持续中，未全量达成不归档） | tasks/active/TASK-0066-v2.3-content-factory.md |
+| TASK-0070 | french-learner | Wave 2 车道 A：v3.0 每日十五分钟（今日任务视图 + 游戏化内核） | 高 | 进行中（方案已提交待确认） | tasks/active/TASK-0070-v3.0-daily-path.md |
 
 ## 归档记录
 
@@ -24,6 +23,11 @@
 
 | ID | 项目 | 任务 | 完成日期 | 归档位置 |
 |----|------|------|----------|----------|
+| TASK-0069 | french-learner | Wave 1 收尾：v2.3 批次续跑（四轮补量至 106 篇四档各 ≥20 + 音频 536 条 + 抽检 0/5 误放，路线图 v2.3 点亮） | 2026-11-21 | tasks/archive/2026-11/TASK-0069-v2.3-batch-continue.md |
+| TASK-0068 | french-learner | Wave 1 收尾：v3.2 发音教练端到端 ≤3s 调参（coach 专用 tiny 模型实测 0.62–0.84s；切页重叠缺陷+协商缓存根治 251d0e6） | 2026-11-21 | tasks/archive/2026-11/TASK-0068-v3.2-latency-tuning.md |
+| TASK-0066 | french-learner | Wave 1 车道 B：v2.3 内容工厂（语料量产管线 + AI 审校 + 音频批量，批次 1 口径修订后达标） | 2026-11-21 | tasks/archive/2026-11/TASK-0066-v2.3-content-factory.md |
+| TASK-0063 | french-learner | 补强总纲 v2.2–v4.1 落地 + 多会话并行开发机制（Wave 0/1 实战闭环，Wave 2 解锁） | 2026-11-21 | tasks/archive/2026-11/TASK-0063-master-plan-parallel.md |
+| TASK-0070 | service_manager | `_load_state` 容错修复（损坏 JSON 备份重建 + 缺键补默认；unittest 22 例绿） | 2026-11-20 | tasks/archive/2026-11/TASK-0070-service-manager-loadstate-fix.md |
 | TASK-0067 | french-learner | Wave 1 车道 C：v3.2 发音教练（词级时间戳 + 三池选句器 + 三维评分 + 中文反馈；端到端实测 ~3.6s 略超 3s 待调参） | 2026-11-20 | tasks/archive/2026-11/TASK-0067-v3.2-pron-coach.md |
 | TASK-0065 | french-learner | Wave 1 车道 A：v2.2 零基础 A1 通路（定级四档24题 + A1语料10篇 + onboarding台阶路径，真机验收通过） | 2026-11-20 | tasks/archive/2026-11/TASK-0065-v2.2-a1-path.md |
 | TASK-0064 | french-learner | Wave 0 地基拆分（app.py→12 routers + app.js→ES modules + worktree 脚本，A/B 行为一致） | 2026-11-20 | tasks/archive/2026-11/TASK-0064-wave0-foundation.md |
