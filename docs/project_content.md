@@ -26,7 +26,8 @@ tool_box/
 │   └── lessons.md            # 经验库：跨项目通用经验
 ├── tasks/
 │   ├── task_state.md         # 任务看板（活动任务索引 + 归档记录）
-│   ├── _TEMPLATE.md          # 任务文件模板
+│   ├── next_id.txt           # 任务编号单一计数器（领号取当前值并 +1 写回）
+│   ├── _TEMPLATE.md          # 任务文件模板（验收三态 + 状态取值）
 │   ├── night_backlog.md      # 夜班任务池（每晚巡库刷新）
 │   ├── night_reports/        # 夜报目录（每晚收口产物）
 │   ├── active/               # 进行中的任务文件
@@ -61,7 +62,7 @@ tool_box/
 | annual_report_reader | tools/annual_report_reader/ | server.py（Web，:5001）/ main.py（CLI）/ h1_2026.html（单页分析台） | 行业龙头年报带读（申万一级 31 行业龙头，GLM 或 --local 零 GLM 本地模式，记忆增量续跑）；扩展「2026 A股半年报分析台」六板块单页 | 31行业本地带读完成29家+横向对比（TASK-0046）；半年报分析台已发布 | README.md；半年报详见 h1_2026_docs/USER_GUIDE.md |
 | service_manager | tools/service_manager/ | server.py（Web，:5002） | Python 启动、重启、关闭服务，查看服务状态与日志 | 待真机验收 | tools/service_manager/README.md |
 | french-learner | tools/french-learner/ | start.bat 一键启动（后端 :8000 被占自动回退 8001-8019 + 本地语音 :8010；可离线直开 frontend/index.html） | 呀呀法语：Web 法语学习产品（重述式 AI 口语陪练 + i+1 分级输入 + CEFR 定级 + 生词卡 SM-2 复习 + 读音规则 + DELF/TCF 冲刺）；独立 Git 仓库 | 阶段 0-4、读音覆盖修复（词卡 97.8%）、生词卡重设计均已验收 | tools/french-learner/README.md（架构契约与 QA 报告在其 docs/） |
-| workbuddy-multi-account | tools/workbuddy-multi-account/ | server.py（FastAPI，端口可配默认 8000，占用自动回退） | WorkBuddy 多账号管理：多账号登录、自动签到、聊天记录合并与迁移、切号任务快照迁移、账号删除，Web 管理面板 | 进行中（切号写回修复 + 删除 TASK-0045；此前 TASK-0037/0041/0043/0044 已完成） | tools/workbuddy-multi-account/README.md |
+| workbuddy-multi-account | tools/workbuddy-multi-account/ | server.py（FastAPI，bind-first 自定端口，专属段 8010-8029，事实文件 data/cache/workbuddy-multi-account/port.json） | WorkBuddy 多账号管理：多账号登录、自动签到、聊天记录合并与迁移、切号任务快照迁移、账号删除，Web 管理面板 | 进行中（端口/开错服务根治 TASK-0052；此前 TASK-0037/0041/0043/0044/0045 已完成） | tools/workbuddy-multi-account/README.md |
 
 ## 常见需求 → 改动点定位
 

@@ -15,18 +15,24 @@
 | TASK-0028 | tool_box 全局 | 夜班自动化 NightOps（23:00–09:00 无人值守迭代） | 高 | 进行中（章程/任务池/Cron/演练已落地，待首夜实战验证） | tasks/active/TASK-0028-night-ops.md |
 | TASK-0029 | french-learner | 逐词点击学发音 + 连读教学（例句/短语） | 中 | 进行中（浏览器真机验收三步全过：token→单词卡/连读卡/零回归，待验收） | tasks/active/TASK-0029-linking-teaching.md |
 | TASK-0032 | french-learner | 读音学习交互重构：贴词气泡 + 连读内嵌（取代模态跳转） | 高 | 进行中（浏览器真机四步全过：气泡原地/外点关闭/再点收起/内嵌展开收起/完整讲解回位，待用户验收） | tasks/active/TASK-0032-pron-inline-popover.md |
-| TASK-0042 | annual_report_reader | h1_2026 分析台自检启动脚本（start.bat + selfcheck.py，22 项自检通过才打开页面） | 低 | 已完成（22/22 PASS，失败路径实测 exit=1，还原复检全绿） | tasks/active/TASK-0042-h1-selfcheck-start.md |
 
 ## 归档记录
 
+> **编号说明**：TASK-0051、TASK-0052 各有两条不同项目的记录（历史并发领号重号遗留，分属 french-learner / annual_report_reader / workbuddy-multi-account）。为免破坏文档与经验库引用，不重命名；新任务一律走 `tasks/next_id.txt` 单一计数器，杜绝新增重号。
+
 | ID | 项目 | 任务 | 完成日期 | 归档位置 |
 |----|------|------|----------|----------|
+| TASK-0055 | tool_box 全局 | 工作流提效与状态一致性（三态验收/单一编号/两次规则） | 2026-11-20 | tasks/archive/2026-11/TASK-0055-工作流提效与状态一致性.md |
+| TASK-0042 | annual_report_reader | h1_2026 分析台自检启动脚本（start.bat + selfcheck.py，22 项自检通过才打开页面） | 2026-11-20 | tasks/archive/2026-11/TASK-0042-h1-selfcheck-start.md |
+| TASK-0052 | workbuddy-multi-account | 根治端口漂移与自动打开错服务（bind-first + 端口事实文件 + 服务身份校验 + 专属段 8010-8029） | 2026-11-20 | tasks/archive/2026-11/TASK-0052-port-registry-root-fix.md |
 | TASK-0051 | annual_report_reader | 横向对比表补充「名词解释（小白版）」 | 2026-11-20 | tasks/archive/2026-11/TASK-0051-glossary-for-layman.md |
 | TASK-0047 | french-learner | 「我的成长」视图 v1（真实数据聚合 + FALLBACK 假值修复） | 2026-11-19 | tasks/archive/2026-11/TASK-0047-growth-view-v1.md |
 | TASK-0048 | french-learner | 复习卡加读音 + 记忆小账本上移免滚动 | 2026-11-19 | tasks/archive/2026-11/TASK-0048-review-audio-ledger-above.md |
 | TASK-0049 | french-learner | 右栏布局方案E：账本吸顶条 + 生词满高（5版设计稿对比） | 2026-11-19 | tasks/archive/2026-11/TASK-0049-right-rail-plan-e.md |
 | TASK-0050 | french-learner | 重置对话：UI 初始化 + 持久化同步清空（DELETE /api/chat/history） | 2026-11-19 | tasks/archive/2026-11/TASK-0050-reset-chat-persisted.md |
 | TASK-0051 | french-learner | 前端显示审计 7 项修复（对比度/重置入口/空态/进度条/网格） | 2026-11-19 | tasks/archive/2026-11/TASK-0051-fix-display-audit-7.md |
+| TASK-0052 | french-learner | 阅读完成落库 + 成长页阅读卡真实数据（幂等 reading_logs） | 2026-11-20 | tasks/archive/2026-11/TASK-0052-reading-complete-persist.md |
+| TASK-0053 | french-learner | 首次引导 onboarding（≤3 步可跳过，方案F） | 2026-11-20 | tasks/archive/2026-11/TASK-0053-onboarding-3steps.md |
 | TASK-0040 | french-learner | 学习进度持久化 P0：对话历史读回 + 假值清零 + 真实统计 | 2026-11-19 | tasks/archive/2026-11/TASK-0040-progress-persistence-p0.md |
 | TASK-0031 | french-learner | 读音跟读闭环（P1）：🎙 ASR 近似比对 + 三档温和反馈 | 2026-11-19 | tasks/archive/2026-11/TASK-0031-pron-shadow-p1.md |
 | TASK-0037 | workbuddy-multi-account | 切号任务列表迁移：接管客户端任务快照 | 2026-11-19 | tasks/archive/2026-11/TASK-0037-task-snapshot-migration.md |
@@ -64,3 +70,4 @@
 | TASK-0036 | french-learner | 生词卡：删除连读按钮 | 2026-11-19 | tasks/archive/2026-11/TASK-0036-remove-vocab-link-btn.md |
 | TASK-0038 | french-learner | 分级阅读接入连读教学（逐句 + 整篇原文） | 2026-11-19 | tasks/archive/2026-11/TASK-0038-reading-linking.md |
 | TASK-0039 | french-learner | 连读块：删除内部整句行与整句示范按钮（去重复） | 2026-11-19 | tasks/archive/2026-11/TASK-0039-remove-inline-sent-dup.md |
+| TASK-0054 | french-learner | 页脚手动重温引导入口（reopenOnboarding） | 2026-11-20 | tasks/archive/2026-11/TASK-0054-onboarding-reopen.md |
