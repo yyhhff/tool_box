@@ -30,7 +30,7 @@
 | OP-03 | annual_report_reader | server.py 6 路由 test_client 测试（mock industry.select/_run_pipeline） | 实施 | M | 待排产 |
 | OP-04 | annual_report_reader | analyzer.py GLM 链路 mock 测试（mock OpenAI client，零真实调用） | 实施 | M | 待排产 |
 | OP-05 | french-learner | backend 批 1：srs.py（SM-2 纯函数）+ assessment.py 判分（与 texts.json 现场零冲突，只新增 tests 文件） | 实施 | S-M | 已完成（TASK-0075，63 例绿，7 项缺陷清单待白天裁定） |
-| OP-06 | french-learner | backend 批 2：ai.py recast 降级判定表 9 条逐条覆盖（urllib 全 mock） | 实施 | M | 待排产 |
+| OP-06 | french-learner | backend 批 2：ai.py recast 降级判定表 9 条逐条覆盖（urllib 全 mock） | 实施 | M | 已完成（TASK-0076，39 例绿，契约偏差 5 处 + 缺陷 4 项记录） |
 | OP-07 | french-learner | backend 批 3：exam.py 判分/敏感字段投影/重复交卷幂等（GLM mock） | 实施 | M | 待排产 |
 | OP-08 | french-learner | backend 批 4：pronunciation.py 规则加载校验 + db.py tmp DB CRUD | 实施 | M | 待排产 |
 | OP-11 | tool_box 全局 | _template README 补"测试"小节（test_*.py 命名 + unittest discover 约定） | 实施 | S | 低优先 |
