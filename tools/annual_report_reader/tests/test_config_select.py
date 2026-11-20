@@ -15,8 +15,9 @@ r"""memory / industry / main 选股与记忆逻辑单元测试（全部 mock 外
   不测。
 - main.build_targets 用 mock 替换 industry.select，只测纯逻辑。
 - memory.save_config/remember_last_run/load_index/save_index/record/company_dir/
-  industry_dir 与 main.run_pipeline/main.main/_utf8_console 均不测（写真实 data/
-  或触发全流程）。
+  industry_dir 的持久化测试在 tests/test_memory_persist.py（全部路径常量 mock
+  到临时目录，不写真实 data/），本文件不再排除（TASK-0074）。
+- main.run_pipeline/main.main/_utf8_console 不测（触发全流程）。
 """
 
 import sys
