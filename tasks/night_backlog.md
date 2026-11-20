@@ -36,7 +36,14 @@
 | OP-11 | tool_box 全局 | _template README 补"测试"小节（test_*.py 命名 + unittest discover 约定） | 实施 | S | 低优先 |
 | OP-12 | tool_box 全局 | lessons.md 补"纯逻辑单测红线落法三件套"通用经验（TASK-0071/0072 验证有效） | 实施 | S | 低优先 |
 
-**新增需求（等用户排期，夜间不实施）**：ARR 二期国家政策接入（README 明文二期）；night_ops.md §7 编号规则同步 AGENTS.md 计数器制（章程夜间无权改，晨起请确认）；data/cache 散落脚本清理（删文件边界需用户判定）；next_id.txt 计数器原子性根治（文件锁，MASTER_PLAN 风险 5 另行立项）；french-learner content_pipeline 测试（TASK-0066/0069 车道归档后开放）；routers 集成测试（规模 L 单独立项）；xhs 真机验收（NB-006）。
+## 呀呀法语 Wave 3/4 开发（用户 2026-11-21 凌晨指示加入）
+
+| 编号 | 项目 | 描述 | 级别 | 状态 |
+|------|------|------|------|------|
+| WV3-A | french-learner | **v4.0 说得出口**（口语四维体检报告 + CAT 自适应定级 + B1 判据文档化；依赖 v3.0 已合并 ✓；认领车道 A，worktree v4.0-speaking） | 实施 | 已认领（TASK-0080，进行中） |
+| WV4-D | french-learner | **v4.1 口袋里的呀呀**（PWA + 部署收敛；依赖"全部已合并"——v3.3 待集成未满足，**暂不可开工**） | 实施 | 依赖未满足，等 v3.3 集成 |
+
+**新增需求（等用户排期，夜间不实施）**：ARR 二期国家政策接入（README 明文二期）；night_ops.md §7 编号规则同步 AGENTS.md 计数器制（章程夜间无权改，晨起请确认）；data/cache 散落脚本清理（删文件边界需用户判定）；next_id.txt 计数器原子性根治（文件锁，MASTER_PLAN 风险 5 另行立项）+ **计数器与看板脱节校准**（next_id=78 但 0078/0079 已被看板占用，夜班跳号至 80）；french-learner content_pipeline 测试（TASK-0066/0069 车道归档后开放）；routers 集成测试（规模 L 单独立项）；xhs 真机验收（NB-006）。
 
 ## 历史参考
 
