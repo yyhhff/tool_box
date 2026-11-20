@@ -1,6 +1,6 @@
 # TASK-0016 呀呀法语阶段二（GLM 可插拔重述 + i+1 输入流）
 
-- **状态**：完成（代码 + 独立 QA 109/109 通过，待上级验收）
+- **状态**：完成（已验收，2026-11-19）
 - **优先级**：高
 - **创建日期**：2026-11-17
 - **完成日期**：2026-11-17
@@ -59,3 +59,5 @@
 - 2026-11-17 20:15 四角色修复 `Show !/Chef Onti` 误识别（ASR beam/prompt/保守纠正 + 主后端透传 + 前端修正小字）与 explanation 强制中文；QA 最终 28/28 PASS；提交 `26bbc40`、`22d38a3`、`5e0d491`。
 - 2026-11-17 20:45 三角色调研 + 三角色实施 ASR 升级：置信度三阈值门控、低置信不自动提交改重录、默认换 small（tiny 一行回退）；QA 门控 12/12 + 回归 9/9 PASS，15 句 A/B WER 0.048→0.008（合成语音，不可外推真人）；提交 `23b866f`、`b1f71e8`，报告 `docs/QA_ASR_UPGRADE_REPORT.md`。
 - 2026-11-18 验收期缺陷 **D1**（上级发现：explanation 正确/错误形式颠倒）修复：SYSTEM_PROMPT 消除自相矛盾 + 顺序硬约束，新增 `_validate_explanation_order` 确定性兜底交换；离线单测 9/9、真实 GLM 直调 2 次、HTTP 端到端均通过；`docs/QA_REPORT.md` 第八节留痕。
+- 2026-11-18 验收期缺陷 **D2**（上级发现：伪重述——片段句 `S'en va ?` 被硬凑 recast_of、ai_text 与原句无关联且角色错位、recast_of 回填截断）修复：SYSTEM_PROMPT 定义纠错充要条件 + `_validate_recast_relevance` 词汇锚兜底降级 + recast_of 用户原句权威覆盖 + 方位词方向提示词加固；离线 8/8、真实 GLM（含兜底真实拦截证据）、HTTP 端到端 ×2 通过；`docs/QA_REPORT.md` 第九节留痕。
+- 2026-11-19 用户验收通过；经验提炼 1 条（LLM 关键语义字段确定性兜底）入 `docs/lessons.md`；归档至 `tasks/archive/2026-11/`。

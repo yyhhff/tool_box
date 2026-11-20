@@ -231,19 +231,20 @@ function renderAccounts() {
         <span class="badge ${a.status}">${st}</span>
         ${a.has_credential ? "" : '<span class="badge nocred">无凭据</span>'}
       </div>
-      <div class="acct-meta">ID: ${a.id} · 最后活跃: ${time}${a.merged_from ? " · 已合并来源: " + esc(a.merged_from) : ""}</div>
+      <div class="acct-meta">ID: ${a.id}${a.uid ? " · uid: " + esc(a.uid) : ""} · 最后活跃: ${time}${a.merged_from ? " · 已合并来源: " + esc(a.merged_from) : ""}</div>
       <div class="row">
         <label class="switch-label" onclick="toggleFlag('${a.id}', 'auto_checkin', ${!a.auto_checkin})">
           <span class="switch ${a.auto_checkin ? "on" : ""}"></span>每日自动签到
         </label>
         <label class="switch-label" onclick="toggleFlag('${a.id}', 'auto_merge', ${!a.auto_merge})">
-          <span class="switch ${a.auto_merge ? "on" : ""}"></span>切号自动迁移记录
+          <span class="switch ${a.auto_merge ? "on" : ""}"></span>切号自动迁移任务列表
         </label>
         <span style="flex:1"></span>
         <button class="act" onclick="probeStatus('${a.id}')">探测状态</button>
-        ${a.has_credential ? `<button class="act primary" onclick="activateClient('${a.id}')">设为客户端登录</button>` : ""}
+        ${a.has_credential ? `<button class="act primary" onclick="activateClient('${a.id}', this)">设为客户端登录</button>` : ""}
         ${a.has_credential ? `<button class="act primary" onclick="checkinOne('${a.id}')">签到</button>` : ""}
         ${a.has_credential ? `<button class="act" onclick="refreshCred('${a.id}')">刷新凭据</button>` : ""}
+        <button class="act danger" onclick="deleteAccount('${a.id}', this)">删除</button>
       </div>
     </div>`;
   }).join("");
@@ -305,16 +306,43 @@ async function refreshCred(id) {
   } catch (e) { toast("刷新失败：" + e.message, true); }
 }
 
-async function activateClient(id) {
+async function activateClient(id, btn) {
+  if (btn && btn.disabled) return;
   const a = accountsCache.find(x => x.id === id);
   const name = a ? a.name : id;
   if (!confirm(`把 WorkBuddy 客户端切换登录为「${name}」？\n\n客户端将自动重启，当前客户端里未完成的会话会中断。\n（签到等后台任务不受影响，仍按各账号快照轮转）`)) return;
+  if (btn) btn.disabled = true;
   try {
     toast("切换中：正在写回凭据并重启客户端…");
     const d = await api("/api/accounts/" + id + "/activate", { method: "POST" });
-    toast(d.message);
+    let msg = d.message || "切换完成";
+    const m = d.task_migration;
+    if (m && m.attempted) {
+      if (m.ok) {
+        const s = m.stats || {};
+        msg += ` · 任务列表已迁移（新增 ${s.added || 0}，更新 ${s.updated || 0}）`;
+      } else {
+        msg += " · 任务迁移失败：" + (m.error || "未知原因") + "（原数据未改动）";
+      }
+    }
+    toast(msg, !!(m && m.attempted && !m.ok));
     setTimeout(refreshAccounts, 3000);
   } catch (e) { toast("切换失败：" + e.message, true); }
+  finally { if (btn) btn.disabled = false; }
+}
+
+async function deleteAccount(id, btn) {
+  if (btn && btn.disabled) return;
+  const a = accountsCache.find(x => x.id === id);
+  const name = a ? a.name : id;
+  if (!confirm(`删除账号「${name}」？\n\n将同时删除该账号的凭据快照、签到记录与聊天记录，不可恢复。\n客户端当前登录态不受影响。`)) return;
+  if (btn) btn.disabled = true;
+  try {
+    const d = await api("/api/accounts/" + id, { method: "DELETE" });
+    toast(d.message || "账号已删除");
+    await refreshAccounts();
+  } catch (e) { toast("删除失败：" + e.message, true); }
+  finally { if (btn) btn.disabled = false; }
 }
 
 function showBind() { document.getElementById("bindBox").classList.remove("hidden"); document.getElementById("bindName").focus(); }

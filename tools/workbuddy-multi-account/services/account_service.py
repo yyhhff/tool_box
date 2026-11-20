@@ -15,7 +15,7 @@ import time
 import uuid
 from datetime import datetime
 
-from models import Account, get_db
+from models import Account, ChatMessage, CheckinRecord, get_db
 from config import CREDENTIAL_DIR
 from services.workbuddy_client import (
     AuthError,
@@ -27,6 +27,64 @@ from services.workbuddy_client import (
     CODE_NO_NETWORK,
     AUTH_BASENAME,
 )
+from services.task_snapshot_service import read_uid_from_credential
+
+# 凭据写回：客户端自己原子写 .info 时也会占用固定名 .tmp，撞名会报 Errno 13。
+# 用唯一临时名 + 短重试，容忍切号后残留的短暂文件锁。
+AUTH_WRITE_RETRIES = 5
+AUTH_WRITE_DELAY = 1.0
+
+
+def stop_client() -> bool:
+    """强关客户端并轮询等其退出；返回是否已无 WorkBuddy.exe。
+
+    taskkill 失败以前被静默吞掉，导致凭据还在被客户端占用时就去写，报 Errno 13。
+    """
+    stopped = subprocess.run(["taskkill", "/IM", "WorkBuddy.exe", "/F"],
+                             capture_output=True, text=True,
+                             errors="replace")
+    print("[client-kill] taskkill rc=%s %s" % (
+        stopped.returncode, ((stopped.stdout or "") + (stopped.stderr or "")).strip()))
+    for _ in range(10):
+        listing = subprocess.run(["tasklist", "/FI", "IMAGENAME eq WorkBuddy.exe"],
+                                 capture_output=True, text=True, errors="replace")
+        if "WorkBuddy.exe" not in (listing.stdout or ""):
+            return True
+        time.sleep(0.5)
+    print("[client-kill] 5s 后仍有 WorkBuddy.exe 存活，继续尝试写回凭据")
+    return False
+
+
+def write_auth_file(auth_file: str, snapshot_bytes: bytes) -> None:
+    """原子写回客户端凭据；临时名带 pid+随机串，避开客户端自身/残留的 .tmp 锁。
+
+    写后读回比对字节，避免 os.replace 成功但内容不对仍去重启客户端。
+    """
+    os.makedirs(os.path.dirname(auth_file), exist_ok=True)
+    last_error = None
+    for attempt in range(1, AUTH_WRITE_RETRIES + 1):
+        tmp_path = "%s.%d.%s.tmp" % (auth_file, os.getpid(), uuid.uuid4().hex[:8])
+        try:
+            with open(tmp_path, "wb") as f:
+                f.write(snapshot_bytes)
+                f.flush()
+                os.fsync(f.fileno())
+            os.replace(tmp_path, auth_file)
+            with open(auth_file, "rb") as f:
+                if f.read() != snapshot_bytes:
+                    raise OSError("凭据写回后内容校验不一致")
+            return
+        except OSError as e:
+            last_error = e
+            try:
+                os.remove(tmp_path)
+            except OSError:
+                pass
+            if attempt < AUTH_WRITE_RETRIES:
+                print("[auth-write] 第 %d/%d 次写回失败：%s；%.1fs 后重试" % (
+                    attempt, AUTH_WRITE_RETRIES, e, AUTH_WRITE_DELAY))
+                time.sleep(AUTH_WRITE_DELAY)
+    raise OSError("凭据写回失败（已重试 %d 次）：%s" % (AUTH_WRITE_RETRIES, last_error))
 
 
 class AccountService:
@@ -64,6 +122,7 @@ class AccountService:
                 name=name,
                 status="offline",
                 credential_path=credential_path,
+                uid=read_uid_from_credential(credential_path),
             )
             db.add(account)
             db.commit()
@@ -135,11 +194,15 @@ class AccountService:
         from services.workbuddy_client import load_client_for_account
         return load_client_for_account(account.id, account.credential_path)
 
-    def activate_account(self, account_id: str, restart_client: bool = True) -> dict:
+    def activate_account(self, account_id: str, restart_client: bool = True,
+                         on_after_kill=None) -> dict:
         """
         设为客户端登录：把该账号的凭据快照原样写回客户端凭据文件并重启 WorkBuddy。
 
         注意：会强制关闭并重启 WorkBuddy 客户端（正在进行的客户端会话会中断）。
+        on_after_kill(account)：可选回调，在 taskkill 之后、写回凭据与重启之前调用；
+        API 层借此把"客户端当前登录账号"的任务合并到目标账号（此时客户端已退出、
+        db 无锁，且客户端凭据仍是源账号登录态，可据此识别源账号）。
         """
         db = next(get_db())
         try:
@@ -155,9 +218,17 @@ class AccountService:
             db.close()
 
         # 1. 关闭客户端（运行中会短暂独占凭据文件，先退场再写）
-        subprocess.run(["taskkill", "/IM", "WorkBuddy.exe", "/F"],
-                       capture_output=True)
-        time.sleep(2.0)
+        stop_client()
+
+        # 1.5 切号后任务迁移（回调）：必须在 kill 之后、写回凭据与重启之前执行。
+        #     此时客户端已退出（sidebar 快照 / db 无写入锁），且客户端凭据文件仍保存
+        #     源账号登录态，可据此识别源账号。回调异常只记日志，不影响切号主流程。
+        task_migration = None
+        if callable(on_after_kill):
+            try:
+                task_migration = on_after_kill(account)
+            except Exception as e:
+                print("[task-migrate] 切号后迁移回调异常（已忽略）：%s" % e)
 
         # 2. 原子写回凭据文件（客户端从未登录过时用标准路径构造）
         auth_file, _ = find_auth_file()
@@ -165,11 +236,7 @@ class AccountService:
             home = os.path.expanduser("~")
             local = os.environ.get("LOCALAPPDATA") or os.path.join(home, "AppData", "Local")
             auth_file = os.path.join(local, AUTH_BASENAME)
-        os.makedirs(os.path.dirname(auth_file), exist_ok=True)
-        tmp_path = auth_file + ".tmp"
-        with open(tmp_path, "wb") as f:
-            f.write(snapshot_bytes)
-        os.replace(tmp_path, auth_file)
+        write_auth_file(auth_file, snapshot_bytes)
 
         # 3. 重启客户端（分离进程，正常显示 UI）
         restarted = False
@@ -185,12 +252,57 @@ class AccountService:
             except Exception:
                 restarted = False
 
-        return {
+        result = {
             "ok": True,
             "message": "已将客户端登录切换为 %s%s" % (
                 account.name, "（客户端已重启）" if restarted else "（客户端未运行，启动后生效）"),
             "account_id": account_id,
             "client_restarted": restarted,
+        }
+        if task_migration is not None:
+            # 迁移摘要透传前端（auto_merge 未触发时为 {"attempted": False}）
+            result["task_migration"] = task_migration
+        return result
+
+    def delete_account(self, account_id: str) -> dict:
+        """删除账号：DB 行 + 凭据快照 + 关联签到/聊天记录（不可恢复）。
+
+        只动工具自身数据；客户端当前登录态与客户端私有任务/会话不受影响。
+        """
+        db = next(get_db())
+        try:
+            account = db.query(Account).filter(Account.id == account_id).first()
+            if not account:
+                return {"ok": False, "reason": "NOT_FOUND", "message": "账号不存在"}
+            name = account.name
+            credential_path = account.credential_path
+            chat_count = db.query(ChatMessage).filter(
+                ChatMessage.account_id == account_id).delete(synchronize_session=False)
+            checkin_count = db.query(CheckinRecord).filter(
+                CheckinRecord.account_id == account_id).delete(synchronize_session=False)
+            db.delete(account)
+            db.commit()
+        except Exception:
+            db.rollback()
+            raise
+        finally:
+            db.close()
+
+        credential_removed = False
+        if credential_path:
+            try:
+                os.remove(credential_path)
+                credential_removed = True
+            except FileNotFoundError:
+                pass
+            except OSError as e:
+                print("[delete] 凭据快照删除失败：%s" % e)
+        return {
+            "ok": True,
+            "message": "账号「%s」已删除" % name,
+            "deleted_chat_messages": chat_count,
+            "deleted_checkin_records": checkin_count,
+            "credential_removed": credential_removed,
         }
 
 

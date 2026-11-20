@@ -29,6 +29,28 @@ AUTO_MIGRATE_ENABLED = False
 # HTTP 配置
 REQUEST_TIMEOUT = 30  # 秒
 
+# 服务端口配置（start.bat 探测到主端口被占时自动挑备用端口并写环境变量 WORKBUDDY_MA_PORT）
+PORT_ENV = "WORKBUDDY_MA_PORT"
+DEFAULT_PORT = 8000
+FALLBACK_PORTS = list(range(8001, 8020))
+
+
+def get_port() -> int:
+    """读取服务端口：优先环境变量 WORKBUDDY_MA_PORT，非法值回退默认 8000。"""
+    raw = os.environ.get(PORT_ENV, "").strip()
+    if raw.isdigit():
+        port = int(raw)
+        if 1 <= port <= 65535:
+            return port
+    return DEFAULT_PORT
+
+# 客户端任务数据根目录（客户端按 uid 分目录存 sidebar-list-snapshot.json）
+# 支持环境变量 WORKBUDDY_CLIENT_DATA 覆盖，便于自定义安装位置/测试
+CLIENT_DATA_ROOT = Path(os.environ.get("WORKBUDDY_CLIENT_DATA") or str(Path.home() / ".workbuddy"))
+
+# 任务快照/数据库写前备份根目录（迁移时按时间戳建子目录）
+SNAPSHOT_BACKUP_DIR = BASE_DIR / "data" / "cache" / "workbuddy-multi-account" / "snapshots"
+
 # 日志配置
 LOG_LEVEL = "INFO"
 LOG_DIR = BASE_DIR / "data" / "output" / "workbuddy-multi-account"

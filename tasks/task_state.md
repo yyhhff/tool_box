@@ -16,12 +16,17 @@
 | TASK-0029 | french-learner | 逐词点击学发音 + 连读教学（例句/短语） | 中 | 进行中（浏览器真机验收三步全过：token→单词卡/连读卡/零回归，待验收） | tasks/active/TASK-0029-linking-teaching.md |
 | TASK-0032 | french-learner | 读音学习交互重构：贴词气泡 + 连读内嵌（取代模态跳转） | 高 | 进行中（浏览器真机四步全过：气泡原地/外点关闭/再点收起/内嵌展开收起/完整讲解回位，待用户验收） | tasks/active/TASK-0032-pron-inline-popover.md |
 | TASK-0042 | annual_report_reader | h1_2026 分析台自检启动脚本（start.bat + selfcheck.py，22 项自检通过才打开页面） | 低 | 已完成（22/22 PASS，失败路径实测 exit=1，还原复检全绿） | tasks/active/TASK-0042-h1-selfcheck-start.md |
-| TASK-0047 | french-learner | 「我的成长」视图 v1（真实数据聚合 + FALLBACK 假值修复） | 高 | 已完成（待归档登记确认） | tasks/archive/2026-11/TASK-0047-growth-view-v1.md |
 
 ## 归档记录
 
 | ID | 项目 | 任务 | 完成日期 | 归档位置 |
 |----|------|------|----------|----------|
+| TASK-0051 | annual_report_reader | 横向对比表补充「名词解释（小白版）」 | 2026-11-20 | tasks/archive/2026-11/TASK-0051-glossary-for-layman.md |
+| TASK-0047 | french-learner | 「我的成长」视图 v1（真实数据聚合 + FALLBACK 假值修复） | 2026-11-19 | tasks/archive/2026-11/TASK-0047-growth-view-v1.md |
+| TASK-0048 | french-learner | 复习卡加读音 + 记忆小账本上移免滚动 | 2026-11-19 | tasks/archive/2026-11/TASK-0048-review-audio-ledger-above.md |
+| TASK-0049 | french-learner | 右栏布局方案E：账本吸顶条 + 生词满高（5版设计稿对比） | 2026-11-19 | tasks/archive/2026-11/TASK-0049-right-rail-plan-e.md |
+| TASK-0050 | french-learner | 重置对话：UI 初始化 + 持久化同步清空（DELETE /api/chat/history） | 2026-11-19 | tasks/archive/2026-11/TASK-0050-reset-chat-persisted.md |
+| TASK-0051 | french-learner | 前端显示审计 7 项修复（对比度/重置入口/空态/进度条/网格） | 2026-11-19 | tasks/archive/2026-11/TASK-0051-fix-display-audit-7.md |
 | TASK-0040 | french-learner | 学习进度持久化 P0：对话历史读回 + 假值清零 + 真实统计 | 2026-11-19 | tasks/archive/2026-11/TASK-0040-progress-persistence-p0.md |
 | TASK-0031 | french-learner | 读音跟读闭环（P1）：🎙 ASR 近似比对 + 三档温和反馈 | 2026-11-19 | tasks/archive/2026-11/TASK-0031-pron-shadow-p1.md |
 | TASK-0037 | workbuddy-multi-account | 切号任务列表迁移：接管客户端任务快照 | 2026-11-19 | tasks/archive/2026-11/TASK-0037-task-snapshot-migration.md |

@@ -8,7 +8,8 @@
 - ✅ **多账号管理**
   - 扫码登录多个账号
   - 账号状态监控（在线/离线/登录过期）
-  - 账号切换（设置当前活跃账号）
+  - 账号切换（设为客户端登录，自动重启客户端）
+  - 账号删除（清 DB 行 + 凭据快照 + 关联签到/聊天记录，二次确认）
 
 - ✅ **自动签到**
   - 定时任务（每天固定时间）
@@ -31,9 +32,11 @@
   - 按时间范围筛选
 
 ### P2 增强功能
-- ✅ **自动迁移**
-  - 切换账号时自动迁移聊天记录
-  - 可配置开关
+- ✅ **自动迁移**（v1.4.0，TASK-0037）
+  - 切换账号时把源账号的**客户端任务列表**复制合并到目标账号（源保留）
+  - 按任务 id 去重，同 id 以 `lastActivityAt`/`updatedAt` 较新的快照为准覆盖，避免副本堆积
+  - 写前自动备份 + 原子替换 + 失败回滚，只动目标 uid，不污染其他账号
+  - 可配置开关（每账号 `auto_merge`）
 
 - ✅ **账号池可视化**
   - 当前活跃账号高亮
@@ -89,13 +92,19 @@ pip install -r requirements.txt
 
 ### 一键启动（推荐）
 
-双击 `start.bat`（自动检查依赖并启动），然后浏览器访问：
+双击 `start.bat`，它会先尽力清理仍在运行的旧服务，再检查依赖并启动。服务就绪后**会自动在默认浏览器打开管理面板**（不用手动输地址，效果和呀呀法语一样）。
 
-**http://127.0.0.1:8000** —— Web 管理面板
+面板地址：启动脚本会在窗口里打印实际端口，默认 **http://127.0.0.1:8000**。
+
+> **端口占用自动回退**：默认从 8000 启动；若 8000 被占（例如上次服务是"已死但端口没释放"的僵尸进程，`taskkill` 都杀不掉），脚本会自动从 8001–8019 挑一个空闲端口启动，并用该端口打开浏览器——所以请以窗口打印的地址为准。若想固定端口，启动前设 `set WORKBUDDY_MA_PORT=8000`（固定时被占用会报错而不自动换）。前端用相对路径请求 API，换端口不影响功能。
+
+> 不想自动弹浏览器：启动前设环境变量 `MULTIACCT_NO_BROWSER=1`（当前 cmd 窗口执行 `set MULTIACCT_NO_BROWSER=1` 后再双击，或用 `set MULTIACCT_NO_BROWSER=1 && start.bat`）。自动打开最多等 30 秒，超时跳过、不影响服务运行。
+
+> 服务以单进程运行（`reload=False`），避免热重载 spawn 子进程、kill 父进程时残留占住端口形成僵尸。
 
 ### 管理面板功能（v1.3.0）
 
-- **账号池**：账号卡片（状态徽章：在线/需重登/离线/无凭据）、添加账号（bind）、刷新凭据、探测状态、每号「每日自动签到」与「切号自动迁移记录」开关
+- **账号池**：账号卡片（状态徽章：在线/需重登/离线/无凭据，显示 uid）、添加账号（bind）、刷新凭据、探测状态、设为客户端登录、删除账号、每号「每日自动签到」与「切号自动迁移任务列表」开关；切号/删除均防重复点击
 - **签到中心**：30 天统计卡（成功/失败/总积分/账号数）、一键全部签到、签到记录明细表
 - **聊天记录**：一键合并（目标账号 + 来源多选，按 会话ID+消息ID 去重）、消息查询
 
@@ -115,6 +124,8 @@ python server.py        # http://127.0.0.1:8000
 
 - `POST /api/accounts/login` - 扫码登录账号
 - `POST /api/accounts/switch` - 切换账号
+- `POST /api/accounts/{account_id}/activate` - 设为客户端登录（重启客户端 + 可选任务迁移）
+- `DELETE /api/accounts/{account_id}` - 删除账号（含凭据快照与关联记录，不可恢复）
 - `GET /api/accounts/list` - 获取账号列表
 - `GET /api/accounts/{account_id}/status` - 获取账号状态
 
@@ -131,6 +142,55 @@ python server.py        # http://127.0.0.1:8000
 - `POST /api/chat/merge` - 合并聊天记录
 - `GET /api/chat/history/{account_id}` - 获取聊天历史统计
 
+## 切号任务列表迁移（v1.4.0）
+
+WorkBuddy 客户端的「任务列表」（侧边栏会话）并不在本工具的数据库里，而在客户端私有目录：
+
+- 任务列表快照：`~/.workbuddy/<uid>/sidebar-list-snapshot.json`（客户端 UI 直接渲染其 `items`）
+- 会话记录：`~/.workbuddy/workbuddy.db` 的 `sessions` 表（按 `user_id` 隔离）
+- 工具账号 ↔ uid 映射：凭据快照 `credentials/<account_id>.info` 的 `account.uid`（bind 时已解析写入，白名单读取，**从不解析 token**）
+
+`POST /api/accounts/{id}/activate` 在目标账号开启 `auto_merge` 时，会在写回凭据、重启客户端前完成迁移：
+
+1. 读客户端当前登录 uid → 找到对应工具账号的凭据快照（源）
+2. 读源/目标两份快照，按任务 `id` 去重合并；同 id 取 `lastActivityAt`/`updatedAt` 更新者覆盖
+3. 备份两份快照与 `workbuddy.db`（含 `-wal`/`-shm`）到 `data/cache/workbuddy-multi-account/snapshots/<时间戳>/`
+4. 原子替换目标快照（`os.replace`），并 `UPDATE sessions SET user_id=目标` （限定 `user_id=源 AND id IN 任务集`，防串号）
+5. 重启客户端；响应带 `task_migration` 摘要（attempted/ok/stats/error）
+
+**安全边界**：源账号数据只读不改；只用白名单字段（uid/id/title/state/时间/space），任一异常回滚且不破坏目标文件；云同步若随后回写覆盖，属客户端行为，工具只保证本地快照落盘正确。
+
+## 切号凭据写回（v1.5.0）
+
+迁移完成后才写回凭据并重启客户端。客户端自身原子写 `.info` 时也用固定名 `workbuddy-desktop.info.tmp`，两边撞名会报 `[Errno 13] Permission denied`（表现为"任务迁移成功但切换失败"）。实现要点：
+
+- 临时名用 `<auth>.<pid>.<random>.tmp`，不与客户端 `.tmp` 或历史残留锁撞名；
+- 写回失败退避重试 5 次，每次清理临时文件；仍失败返回明确错误；
+- `taskkill` 结果记录日志，kill 后轮询最多 5 秒等客户端退出，不再静默失败；
+- 写回后读回比对字节，确认无误才重启客户端。
+
+删除账号只动工具自身数据（DB 行 / `credentials/<id>.info` / 关联 `chat_messages`、`checkin_records`），不改客户端当前登录态与客户端私有任务/会话；不可恢复，前端有二次确认。
+
+### 验证步骤
+
+```bash
+# 1. 单元与逻辑测试
+python -m unittest discover -s tools/workbuddy-multi-account/tests -v
+
+# 2. dry-run 只读预演（不改客户端任何文件，总指挥已实现）
+#    在 Python shell 中：
+#    from services.task_snapshot_service import dry_run
+#    print(dry_run("credentials/<源账号>.info", "<目标uid>"))
+#    期望：will_add / will_update / final_count 合理，且两次快照文件字节不变
+
+# 3. 真机（需客户端可重启）
+#    面板把目标账号 auto_merge 打开 → 点「设为客户端登录」
+#    检查响应 task_migration.ok=true，新增/更新条数 > 0
+#    核对 ~/.workbuddy/<目标uid>/sidebar-list-snapshot.json 的 items 含源任务且无重复 id
+#    客户端侧边栏目视确认；源 uid 快照未变化
+#    失败时从 data/cache/workbuddy-multi-account/snapshots/<时间戳>/ 回滚
+```
+
 ## 项目结构
 
 ```
@@ -140,9 +200,13 @@ workbuddy-multi-account/
 │   ├── checkin.py          # 签到管理路由
 │   └── chat.py             # 聊天记录管理路由
 ├── services/               # 服务层
-│   ├── account_service.py  # 账号服务（扫码登录/状态检查）
-│   ├── checkin_service.py  # 签到服务（自动签到）
-│   └── scheduler.py        # 定时任务调度器
+│   ├── account_service.py        # 账号服务（扫码登录/状态检查/切号）
+│   ├── checkin_service.py        # 签到服务（自动签到）
+│   ├── task_snapshot_service.py  # 切号任务快照迁移（TASK-0037）
+│   └── scheduler.py              # 定时任务调度器
+├── tests/                  # unittest 单测（TASK-0037 / TASK-0045）
+│   ├── test_task_snapshot.py
+│   └── test_account_service.py
 ├── models.py               # 数据库模型
 ├── config.py               # 配置文件
 ├── server.py               # FastAPI 主文件
@@ -158,7 +222,8 @@ workbuddy-multi-account/
 - `status` - 状态（online/offline/login_required）
 - `last_active_time` - 最后活跃时间
 - `auto_checkin` - 是否自动签到
-- `auto_merge` - 是否自动迁移
+- `auto_merge` - 是否自动迁移任务列表
+- `uid` - 客户端用户 uid（bind 时从凭据快照 account.uid 解析）
 - `merged_from` - 合并来源账号
 
 ### chat_messages（聊天消息表）
@@ -222,6 +287,17 @@ workbuddy-multi-account/
 MIT License
 
 ## 更新日志
+
+### v1.5.0 (2026-11-19)
+- ✅ 修切号凭据写回 `[Errno 13] Permission denied`（TASK-0045）：唯一临时名 + 5 次退避重试 + 写回字节校验 + taskkill 日志与退出轮询
+- ✅ 新增账号删除：`DELETE /api/accounts/{id}` + 面板「删除」按钮（二次确认、防重复点击），清 DB 行/凭据快照/关联记录
+- ✅ 单测 18/18 通过（新增写回重试/临时名清理/删除隔离 5 例）；清理 6 个无凭据测试账号，保留 my-work / my-second
+
+### v1.4.0 (2026-11-19)
+- ✅ 切号任务列表迁移（TASK-0037）：接管客户端 `sidebar-list-snapshot.json`，源→目标按 id 去重、最新快照覆盖
+- ✅ uid 映射从凭据快照 `account.uid` 白名单解析（不碰 token）；Account 表新增 uid 列（轻量迁移）
+- ✅ 写前备份 + 原子替换 + 失败回滚；sessions 表按 (user_id, id) 精确 UPDATE 防串号
+- ✅ activate 响应带 task_migration 摘要；前端显示 uid 与迁移结果；unittest 覆盖解析/去重/备份/幂等/串号隔离
 
 ### v1.3.0 (2026-11-19)
 - ✅ Web 管理面板（static/index.html 单文件，FastAPI 静态托管，零构建链）

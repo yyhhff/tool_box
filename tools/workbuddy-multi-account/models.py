@@ -32,6 +32,7 @@ class Account(Base):
     auto_merge = Column(Boolean, default=False, comment="是否自动迁移")
     merged_from = Column(String, comment="合并来源账号（逗号分隔）")
     credential_path = Column(String, comment="凭据快照文件路径")
+    uid = Column(String, comment="客户端用户 uid")
     created_at = Column(DateTime, default=datetime.now, comment="创建时间")
 
     def to_dict(self):
@@ -45,6 +46,7 @@ class Account(Base):
             "auto_merge": self.auto_merge,
             "merged_from": self.merged_from,
             "has_credential": bool(self.credential_path),
+            "uid": self.uid,
             "created_at": self.created_at.isoformat() if self.created_at else None,
         }
 
@@ -132,7 +134,7 @@ def _ensure_columns():
     from sqlalchemy import inspect, text
     inspector = inspect(engine)
     migrations = {
-        "accounts": {"credential_path": "TEXT"},
+        "accounts": {"credential_path": "TEXT", "uid": "TEXT"},
     }
     with engine.connect() as conn:
         for table, cols in migrations.items():

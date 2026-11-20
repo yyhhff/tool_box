@@ -8,6 +8,9 @@ from typing import Optional
 
 from models import Account, get_db
 from services.account_service import account_service
+from services import task_snapshot_service
+from services.task_snapshot_service import read_uid_from_credential, find_credential_by_uid
+from services.workbuddy_client import find_auth_file
 
 router = APIRouter(prefix="/api/accounts", tags=["账号管理"])
 
@@ -87,12 +90,25 @@ async def activate_account(account_id: str):
     客户端启动时自动登录为该号。注意：会重启客户端，正在进行的客户端会话会中断。
     """
     try:
-        result = account_service.activate_account(account_id)
+        result = account_service.activate_account(
+            account_id, on_after_kill=_merge_tasks_after_kill)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     if not result.get("ok"):
         code = 404 if result.get("reason") == "NOT_FOUND" else 422
         raise HTTPException(status_code=code, detail=result.get("message"))
+    return result
+
+
+@router.delete("/{account_id}")
+async def delete_account(account_id: str):
+    """删除账号：DB 行 + 凭据快照 + 关联签到/聊天记录（不可恢复）。"""
+    try:
+        result = account_service.delete_account(account_id)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    if not result.get("ok"):
+        raise HTTPException(status_code=404, detail=result.get("message"))
     return result
 
 
@@ -227,6 +243,52 @@ async def get_account_status(account_id: str):
         raise HTTPException(status_code=500, detail=str(e))
     finally:
         db.close()
+
+
+def _merge_tasks_after_kill(account):
+    """切号回调：客户端已 kill、凭据未写回、未重启时调用。
+
+    把"客户端当前登录账号"的任务合并到目标账号（account），并返回迁移摘要
+    dict 供 activate 响应透传给前端；未触发迁移时返回 {"attempted": False}。
+    任何异常都只记日志、不抛出，避免影响切号主流程。
+    """
+    try:
+        if not account.auto_merge:
+            return {"attempted": False}
+        # 目标 uid：优先 Account.uid，回退到凭据快照（老账号可能没写 uid）
+        target_uid = account.uid or read_uid_from_credential(account.credential_path)
+        if not target_uid:
+            print("[task-migrate] 目标账号无 uid，跳过任务迁移")
+            return {"attempted": False}
+        auth_file, _ = find_auth_file()
+        if not auth_file:
+            print("[task-migrate] 未找到客户端凭据文件，跳过任务迁移")
+            return {"attempted": False}
+        current_uid = read_uid_from_credential(auth_file)
+        if not current_uid:
+            print("[task-migrate] 客户端凭据未读到 uid，跳过任务迁移")
+            return {"attempted": False}
+        source_credential = find_credential_by_uid(current_uid)
+        if not source_credential:
+            print("[task-migrate] 未找到当前登录账号 %s 的凭据快照，跳过任务迁移" % current_uid)
+            return {"attempted": False}
+        result = task_snapshot_service.migrate_tasks(source_credential, target_uid)
+        print("[task-migrate] 迁移结果：%s" % result)
+        stats = result.get("stats") or {}
+        return {
+            "attempted": True,
+            "ok": result.get("ok"),
+            "source_uid": result.get("source_uid"),
+            "target_uid": result.get("target_uid"),
+            "stats": {
+                "added": stats.get("added", 0),
+                "updated": stats.get("updated", 0),
+            },
+            "error": result.get("error"),
+        }
+    except Exception as e:
+        print("[task-migrate] 迁移回调异常（已忽略）：%s" % e)
+        return {"attempted": False, "error": str(e)}
 
 
 async def migrate_chat_records(current_account_id: str):

@@ -9,6 +9,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 import uvicorn
 
+from config import get_port
 from models import init_db
 from api import accounts, checkin, chat
 from services.scheduler import start_scheduler, stop_scheduler
@@ -78,7 +79,7 @@ if __name__ == "__main__":
     uvicorn.run(
         "server:app",
         host="0.0.0.0",
-        port=8000,
-        reload=True,  # 开发环境启用热重载
+        port=get_port(),
+        reload=False,  # 关热重载：reload 会 spawn 子进程，kill 父进程时残留会占住端口（僵尸）
         log_level="info"
     )
